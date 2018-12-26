@@ -9,6 +9,8 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageButton;
 
 import com.spdb.scenicrouteplanner.R;
 import com.spdb.scenicrouteplanner.lib.PermissionsClassLib;
@@ -33,17 +35,14 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        for (String p: PermissionsClassLib.DANGEROUS_PERMISSIONS)
-        {
-            if (ContextCompat.checkSelfPermission(this, p)
-                    != PackageManager.PERMISSION_GRANTED)
-                notGrantedPermissionsDict.put(PermissionsClassLib.getRequestPermissionCode(p), p);
-        }
-
+        checkPermissions();
         int notGrantedPermissionsCount = notGrantedPermissionsDict.size();
 
         if (notGrantedPermissionsCount == 0)
-            attachMapFragment();
+        {
+            Fragment map = new MapActivity();
+            attachFragment(map, false, null);
+        }
         else
         {
             String[] notGrantedPermissionsArray = new String[notGrantedPermissionsDict.size()];
@@ -51,6 +50,29 @@ public class MainActivity extends AppCompatActivity
             ActivityCompat.requestPermissions(this, notGrantedPermissionsArray,
                     PermissionsClassLib.SOME_PERMISSIONS_CODE);
         }
+
+        final ImageButton findRouteButton = findViewById(R.id.find_route_button);
+        findRouteButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                v.setVisibility(View.GONE);
+                Fragment routePlanner = new RoutePlannerActivity();
+                attachFragment(routePlanner, true, new FragmentManager.OnBackStackChangedListener()
+                {
+                    @Override
+                    public void onBackStackChanged()
+                    {
+                        if (getSupportFragmentManager().getBackStackEntryCount() == 0)
+                        {
+                            ImageButton findRouteButton = findViewById(R.id.find_route_button);
+                            findRouteButton.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -76,22 +98,41 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (notGrantedPermissionsDict.size() == 0)
-            attachMapFragment();
+        {
+            Fragment map = new MapActivity();
+            attachFragment(map, false,null);
+        }
     }
+
+
 
     // ==============================
     // Private methods
     // ==============================
-    private void attachMapFragment()
+    private void attachFragment(Fragment fragment, boolean userCanNavigateBack,
+                                FragmentManager.OnBackStackChangedListener backStackChangedListener)
     {
-        Fragment map = new MapActivity();
-
         FragmentManager fragmentManager = this.getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        fragmentTransaction.replace(R.id.content_frame_layout, map);
+        fragmentTransaction.replace(R.id.content_frame_layout, fragment);
+        if (userCanNavigateBack)
+        {
+            fragmentTransaction.addToBackStack(null);
+            fragmentManager.addOnBackStackChangedListener(backStackChangedListener);
+        }
 
         fragmentTransaction.commit();
+    }
+
+    private void checkPermissions()
+    {
+        for (String p: PermissionsClassLib.DANGEROUS_PERMISSIONS)
+        {
+            if (ContextCompat.checkSelfPermission(this, p)
+                    != PackageManager.PERMISSION_GRANTED)
+                notGrantedPermissionsDict.put(PermissionsClassLib.getRequestPermissionCode(p), p);
+        }
     }
 
     private void serviceRequestPermission(int permCode, int grantResult)

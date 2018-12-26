@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:stretchColumns="1"
+    android:stretchColumns="0"
     tools:context=".activity.RoutePlannerActivity">
 
     <TableRow android:layout_weight="0.05" android:layout_marginTop="5dp">
@@ -11,7 +11,6 @@
             android:id="@+id/start_location"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_span="2"
             android:layout_margin="5dp"
             android:hint="@string/start_location"
             android:inputType="text"
@@ -24,7 +23,6 @@
             android:id="@+id/destination"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_span="2"
             android:layout_margin="5dp"
             android:hint="@string/destination"
             android:inputType="text"
@@ -37,7 +35,6 @@
             android:id="@+id/scenic_route_min_length"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_span="2"
             android:layout_margin="5dp"
             android:hint="@string/scenic_route_min_length"
             android:inputType="number"
@@ -46,7 +43,7 @@
     </TableRow>
 
     <TableRow android:layout_weight="0.85" android:layout_marginBottom="5dp">
-        <ImageButton
+        <!--<ImageButton
             android:id="@+id/previous"
             android:layout_weight=".50"
             android:layout_width="0dp"
@@ -57,17 +54,15 @@
             android:layout_marginEnd="20dp"
             android:background="@null"
             android:src="@drawable/previous_arrow_96px"
-            android:contentDescription="@string/return_map"/>
+            android:contentDescription="@string/return_map"/>-->
 
         <ImageButton
             android:id="@+id/find_route"
-            android:layout_weight=".50"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_column="1"
             android:layout_gravity="bottom"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="100dp"
+            android:layout_marginStart="150dp"
+            android:layout_marginEnd="150dp"
             android:background="@null"
             android:src="@drawable/find_96px"
             android:contentDescription="@string/find_route"/>

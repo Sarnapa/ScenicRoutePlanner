@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.spdb.scenicrouteplanner.R;
+
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.TileSystem;
 import org.osmdroid.views.MapView;
@@ -34,16 +36,27 @@ public class MapActivity extends Fragment
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         mapView = new MapView(inflater.getContext());
+
         mapView.setMultiTouchControls(true);
+
         mapView.setHorizontalMapRepetitionEnabled(false);
         mapView.setVerticalMapRepetitionEnabled(false);
+
         mapView.setTilesScaledToDpi(true);
+
         TileSystem tileSystem = MapView.getTileSystem();
         mapView.setScrollableAreaLimitLatitude(tileSystem.getMaxLatitude(),
                 tileSystem.getMinLatitude(), 0);
         mapView.setScrollableAreaLimitLongitude(tileSystem.getMinLongitude(),
                 tileSystem.getMaxLongitude(), 0);
+
         mapView.setMinZoomLevel(3.0);
+        mapView.setMaxZoomLevel(18.0);
+
+        // Żeby się szybciej kafelki ładowały - do sprawdzenia
+        mapView.getTileProvider().getTileCache().getProtectedTileComputers().clear();
+        mapView.getTileProvider().getTileCache().setAutoEnsureCapacity(false);
+
         mapView.setTileSource(TileSourceFactory.DEFAULT_TILE_SOURCE);
 
         return mapView;

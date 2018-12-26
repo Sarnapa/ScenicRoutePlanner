@@ -12,11 +12,12 @@ tools:context=".activity.MainActivity">
         android:layout_height="match_parent"/>
 
     <ImageButton
+        android:id="@+id/find_route_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignEnd="@id/content_frame_layout"
         android:layout_alignBottom="@id/content_frame_layout"
-        android:layout_margin="50dp"
+        android:layout_margin="75dp"
         android:background="@null"
         android:src="@drawable/find_route_128px"
         android:contentDescription="@string/find_route"/>
