@@ -1,0 +1,108 @@
+package com.spdb.scenicrouteplanner.activity;
+
+import android.content.pm.PackageManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+
+import com.spdb.scenicrouteplanner.R;
+import com.spdb.scenicrouteplanner.lib.PermissionsClassLib;
+
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.Hashtable;
+
+public class MainActivity extends AppCompatActivity
+{
+    // ==============================
+    // Private fields
+    // ==============================
+    private Dictionary<Integer, String> notGrantedPermissionsDict = new Hashtable<>();
+
+    // ==============================
+    // Override ActivityCompat
+    // ==============================
+    @Override
+    protected void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        for (String p: PermissionsClassLib.DANGEROUS_PERMISSIONS)
+        {
+            if (ContextCompat.checkSelfPermission(this, p)
+                    != PackageManager.PERMISSION_GRANTED)
+                notGrantedPermissionsDict.put(PermissionsClassLib.getRequestPermissionCode(p), p);
+        }
+
+        int notGrantedPermissionsCount = notGrantedPermissionsDict.size();
+
+        if (notGrantedPermissionsCount == 0)
+            attachMapFragment();
+        else
+        {
+            String[] notGrantedPermissionsArray = new String[notGrantedPermissionsDict.size()];
+            Collections.list(notGrantedPermissionsDict.elements()).toArray(notGrantedPermissionsArray);
+            ActivityCompat.requestPermissions(this, notGrantedPermissionsArray,
+                    PermissionsClassLib.SOME_PERMISSIONS_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults)
+    {
+        if (grantResults.length > 0)
+        {
+            switch (requestCode)
+            {
+                case PermissionsClassLib.WRITE_EXTERNAL_STORAGE_CODE:
+                case PermissionsClassLib.ACCESS_FINE_LOCATION_CODE:
+                {
+                    serviceRequestPermission(requestCode, grantResults[0]);
+                }
+                case PermissionsClassLib.SOME_PERMISSIONS_CODE:
+                {
+                    for (int i = 0; i < permissions.length ; ++i)
+                    {
+                        serviceRequestPermission(PermissionsClassLib.getRequestPermissionCode(permissions[i]), grantResults[i]);
+                    }
+                }
+            }
+        }
+
+        if (notGrantedPermissionsDict.size() == 0)
+            attachMapFragment();
+    }
+
+    // ==============================
+    // Private methods
+    // ==============================
+    private void attachMapFragment()
+    {
+        Fragment map = new MapActivity();
+
+        FragmentManager fragmentManager = this.getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        fragmentTransaction.replace(R.id.content_frame_layout, map);
+
+        fragmentTransaction.commit();
+    }
+
+    private void serviceRequestPermission(int permCode, int grantResult)
+    {
+        if (grantResult == PackageManager.PERMISSION_GRANTED)
+        {
+            notGrantedPermissionsDict.remove(permCode);
+        }
+        else
+        {
+            // Ładne wyjście z apki
+        }
+    }
+}

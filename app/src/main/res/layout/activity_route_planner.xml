@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:stretchColumns="1"
+    tools:context=".activity.RoutePlannerActivity">
+
+    <TableRow android:layout_weight="0.05" android:layout_marginTop="5dp">
+        <EditText
+            android:id="@+id/start_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_span="2"
+            android:layout_margin="5dp"
+            android:hint="@string/start_location"
+            android:inputType="text"
+            android:drawableStart="@drawable/start_location_48px"
+            android:drawablePadding="5dp"/>
+    </TableRow>
+
+    <TableRow android:layout_weight="0.05">
+        <EditText
+            android:id="@+id/destination"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_span="2"
+            android:layout_margin="5dp"
+            android:hint="@string/destination"
+            android:inputType="text"
+            android:drawableStart="@drawable/destination_48px"
+            android:drawablePadding="5dp"/>
+    </TableRow>
+
+    <TableRow android:layout_weight="0.05">
+        <EditText
+            android:id="@+id/scenic_route_min_length"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_span="2"
+            android:layout_margin="5dp"
+            android:hint="@string/scenic_route_min_length"
+            android:inputType="number"
+            android:drawableStart="@drawable/scenic_route_min_length_48px"
+            android:drawablePadding="5dp" />
+    </TableRow>
+
+    <TableRow android:layout_weight="0.85" android:layout_marginBottom="5dp">
+        <ImageButton
+            android:id="@+id/previous"
+            android:layout_weight=".50"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="100dp"
+            android:layout_marginEnd="20dp"
+            android:background="@null"
+            android:src="@drawable/previous_arrow_96px"
+            android:contentDescription="@string/return_map"/>
+
+        <ImageButton
+            android:id="@+id/find_route"
+            android:layout_weight=".50"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="100dp"
+            android:background="@null"
+            android:src="@drawable/find_96px"
+            android:contentDescription="@string/find_route"/>
+    </TableRow>
+
+</TableLayout>
