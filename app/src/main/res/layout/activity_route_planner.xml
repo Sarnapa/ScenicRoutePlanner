@@ -43,18 +43,6 @@
     </TableRow>
 
     <TableRow android:layout_weight="0.85" android:layout_marginBottom="5dp">
-        <!--<ImageButton
-            android:id="@+id/previous"
-            android:layout_weight=".50"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_column="0"
-            android:layout_gravity="bottom"
-            android:layout_marginStart="100dp"
-            android:layout_marginEnd="20dp"
-            android:background="@null"
-            android:src="@drawable/previous_arrow_96px"
-            android:contentDescription="@string/return_map"/>-->
 
         <ImageButton
             android:id="@+id/find_route"
