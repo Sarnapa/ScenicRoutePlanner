@@ -11,9 +11,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.util.Log;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 import com.spdb.scenicrouteplanner.R;
 import com.spdb.scenicrouteplanner.lib.PermissionsClassLib;
+import com.spdb.scenicrouteplanner.reverseGeocoderService.Address;
+import com.spdb.scenicrouteplanner.reverseGeocoderService.ReverseGeocoder;
 
 import java.util.Collections;
 import java.util.Dictionary;
@@ -25,7 +30,8 @@ public class MainActivity extends AppCompatActivity
     // Private fields
     // ==============================
     private Dictionary<Integer, String> notGrantedPermissionsDict = new Hashtable<>();
-
+    private RequestQueue requestQueue;
+    private static MainActivity mInstance;
     // ==============================
     // Override ActivityCompat
     // ==============================
@@ -33,6 +39,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        mInstance = this;
         setContentView(R.layout.activity_main);
 
         checkPermissions();
@@ -50,6 +57,23 @@ public class MainActivity extends AppCompatActivity
             ActivityCompat.requestPermissions(this, notGrantedPermissionsArray,
                     PermissionsClassLib.SOME_PERMISSIONS_CODE);
         }
+
+        ReverseGeocoder reverseGeocoder = new ReverseGeocoder("wydzial elektroniki i technik informacyjnych warszawa");
+        try {
+            reverseGeocoder.prepareAddress();
+            reverseGeocoder.start();
+            Address address = reverseGeocoder.getAddressQueue().take();
+            Log.d("MAIN_ACTIVITY", address.getDisplayName());
+            Log.d("MAIN_ACTIVITY", Integer.toString(address.getPlaceID()));
+            Log.d("MAIN_ACTIVITY", address.getOsmType());
+            Log.d("MAIN_ACTIVITY", Integer.toString(address.getOsmID()));
+            Log.d("MAIN_ACTIVITY", Double.toString(address.getLongitude()));
+            Log.d("MAIN_ACTIVITY", Double.toString(address.getLatitude()));
+            Log.d("MAIN_ACTIVITY", address.getPlaceClass());
+        } catch(Exception e){
+            Log.e("MAIN_ACTIVITY", e.getMessage());
+        }
+
 
         final ImageButton findRouteButton = findViewById(R.id.find_route_button);
         findRouteButton.setOnClickListener(new View.OnClickListener()
@@ -145,5 +169,22 @@ public class MainActivity extends AppCompatActivity
         {
             // Ładne wyjście z apki
         }
+    }
+
+    // ==============================
+    // Public methods
+    // ==============================
+    public static synchronized MainActivity getInstance() {
+        return mInstance;
+    }
+
+    public RequestQueue getRequestQueue() {
+        if (requestQueue == null)
+            requestQueue = Volley.newRequestQueue(getApplicationContext());
+        return requestQueue;
+    }
+
+    public void cancelAllRequests(String tag) {
+        getRequestQueue().cancelAll(tag);
     }
 }
