@@ -14,6 +14,7 @@ import android.widget.ImageButton;
 import android.util.Log;
 
 import com.spdb.scenicrouteplanner.R;
+import com.spdb.scenicrouteplanner.downloadMapService.DownloadMap;
 import com.spdb.scenicrouteplanner.lib.PermissionsClassLib;
 import com.spdb.scenicrouteplanner.reverseGeocoderService.Address;
 import com.spdb.scenicrouteplanner.reverseGeocoderService.ReverseGeocoder;
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         // REVERSE GEOCODER TEST
-        
+
         /*
         try {
             ReverseGeocoder reverseGeocoder = new ReverseGeocoder();
@@ -72,6 +73,18 @@ public class MainActivity extends AppCompatActivity {
             ee.printStackTrace();
         }
         */
+
+        //DOWNDLOAD MAP TEST
+
+        try {
+            DownloadMap downloadMap = new DownloadMap();
+            downloadMap.execute("21.00957,52.21798,21.01356,52.21987").get();
+            Log.d("DOWNLOAD_MAP", "KONIEC_MAIN");
+        } catch (InterruptedException e) {
+            Log.d("MAIN_ACTIVITY", e.getMessage());
+        } catch (ExecutionException ee) {
+            ee.printStackTrace();
+        }
 
         final ImageButton findRouteButton = findViewById(R.id.find_route_button);
         findRouteButton.setOnClickListener(new View.OnClickListener() {
