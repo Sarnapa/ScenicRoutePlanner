@@ -13,8 +13,6 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.util.Log;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
 import com.spdb.scenicrouteplanner.R;
 import com.spdb.scenicrouteplanner.lib.PermissionsClassLib;
 import com.spdb.scenicrouteplanner.reverseGeocoderService.Address;
@@ -23,21 +21,20 @@ import com.spdb.scenicrouteplanner.reverseGeocoderService.ReverseGeocoder;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.concurrent.ExecutionException;
 
-public class MainActivity extends AppCompatActivity
-{
+public class MainActivity extends AppCompatActivity {
     // ==============================
     // Private fields
     // ==============================
     private Dictionary<Integer, String> notGrantedPermissionsDict = new Hashtable<>();
-    private RequestQueue requestQueue;
     private static MainActivity mInstance;
+
     // ==============================
     // Override ActivityCompat
     // ==============================
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mInstance = this;
         setContentView(R.layout.activity_main);
@@ -45,24 +42,23 @@ public class MainActivity extends AppCompatActivity
         checkPermissions();
         int notGrantedPermissionsCount = notGrantedPermissionsDict.size();
 
-        if (notGrantedPermissionsCount == 0)
-        {
+        if (notGrantedPermissionsCount == 0) {
             Fragment map = new MapActivity();
             attachFragment(map, false, null);
-        }
-        else
-        {
+        } else {
             String[] notGrantedPermissionsArray = new String[notGrantedPermissionsDict.size()];
             Collections.list(notGrantedPermissionsDict.elements()).toArray(notGrantedPermissionsArray);
             ActivityCompat.requestPermissions(this, notGrantedPermissionsArray,
                     PermissionsClassLib.SOME_PERMISSIONS_CODE);
         }
 
-        ReverseGeocoder reverseGeocoder = new ReverseGeocoder("wydzial elektroniki i technik informacyjnych warszawa");
+
+        // REVERSE GEOCODER TEST
+        
+        /*
         try {
-            reverseGeocoder.prepareAddress();
-            reverseGeocoder.start();
-            Address address = reverseGeocoder.getAddressQueue().take();
+            ReverseGeocoder reverseGeocoder = new ReverseGeocoder();
+            Address address = reverseGeocoder.execute("wydzial elektroniki i technik informacyjnych warszawa").get();
             Log.d("MAIN_ACTIVITY", address.getDisplayName());
             Log.d("MAIN_ACTIVITY", Integer.toString(address.getPlaceID()));
             Log.d("MAIN_ACTIVITY", address.getOsmType());
@@ -70,26 +66,23 @@ public class MainActivity extends AppCompatActivity
             Log.d("MAIN_ACTIVITY", Double.toString(address.getLongitude()));
             Log.d("MAIN_ACTIVITY", Double.toString(address.getLatitude()));
             Log.d("MAIN_ACTIVITY", address.getPlaceClass());
-        } catch(Exception e){
-            Log.e("MAIN_ACTIVITY", e.getMessage());
+        } catch (InterruptedException e) {
+            Log.d("MAIN_ACTIVITY", e.getMessage());
+        } catch (ExecutionException ee) {
+            ee.printStackTrace();
         }
-
+        */
 
         final ImageButton findRouteButton = findViewById(R.id.find_route_button);
-        findRouteButton.setOnClickListener(new View.OnClickListener()
-        {
+        findRouteButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v) {
                 v.setVisibility(View.GONE);
                 Fragment routePlanner = new RoutePlannerActivity();
-                attachFragment(routePlanner, true, new FragmentManager.OnBackStackChangedListener()
-                {
+                attachFragment(routePlanner, true, new FragmentManager.OnBackStackChangedListener() {
                     @Override
-                    public void onBackStackChanged()
-                    {
-                        if (getSupportFragmentManager().getBackStackEntryCount() == 0)
-                        {
+                    public void onBackStackChanged() {
+                        if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
                             ImageButton findRouteButton = findViewById(R.id.find_route_button);
                             findRouteButton.setVisibility(View.VISIBLE);
                         }
@@ -100,48 +93,38 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults)
-    {
-        if (grantResults.length > 0)
-        {
-            switch (requestCode)
-            {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        if (grantResults.length > 0) {
+            switch (requestCode) {
                 case PermissionsClassLib.WRITE_EXTERNAL_STORAGE_CODE:
-                case PermissionsClassLib.ACCESS_FINE_LOCATION_CODE:
-                {
+                case PermissionsClassLib.ACCESS_FINE_LOCATION_CODE: {
                     serviceRequestPermission(requestCode, grantResults[0]);
                 }
-                case PermissionsClassLib.SOME_PERMISSIONS_CODE:
-                {
-                    for (int i = 0; i < permissions.length ; ++i)
-                    {
+                case PermissionsClassLib.SOME_PERMISSIONS_CODE: {
+                    for (int i = 0; i < permissions.length; ++i) {
                         serviceRequestPermission(PermissionsClassLib.getRequestPermissionCode(permissions[i]), grantResults[i]);
                     }
                 }
             }
         }
 
-        if (notGrantedPermissionsDict.size() == 0)
-        {
+        if (notGrantedPermissionsDict.size() == 0) {
             Fragment map = new MapActivity();
-            attachFragment(map, false,null);
+            attachFragment(map, false, null);
         }
     }
-
 
 
     // ==============================
     // Private methods
     // ==============================
     private void attachFragment(Fragment fragment, boolean userCanNavigateBack,
-                                FragmentManager.OnBackStackChangedListener backStackChangedListener)
-    {
+                                FragmentManager.OnBackStackChangedListener backStackChangedListener) {
         FragmentManager fragmentManager = this.getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         fragmentTransaction.replace(R.id.content_frame_layout, fragment);
-        if (userCanNavigateBack)
-        {
+        if (userCanNavigateBack) {
             fragmentTransaction.addToBackStack(null);
             fragmentManager.addOnBackStackChangedListener(backStackChangedListener);
         }
@@ -149,24 +132,18 @@ public class MainActivity extends AppCompatActivity
         fragmentTransaction.commit();
     }
 
-    private void checkPermissions()
-    {
-        for (String p: PermissionsClassLib.DANGEROUS_PERMISSIONS)
-        {
+    private void checkPermissions() {
+        for (String p : PermissionsClassLib.DANGEROUS_PERMISSIONS) {
             if (ContextCompat.checkSelfPermission(this, p)
                     != PackageManager.PERMISSION_GRANTED)
                 notGrantedPermissionsDict.put(PermissionsClassLib.getRequestPermissionCode(p), p);
         }
     }
 
-    private void serviceRequestPermission(int permCode, int grantResult)
-    {
-        if (grantResult == PackageManager.PERMISSION_GRANTED)
-        {
+    private void serviceRequestPermission(int permCode, int grantResult) {
+        if (grantResult == PackageManager.PERMISSION_GRANTED) {
             notGrantedPermissionsDict.remove(permCode);
-        }
-        else
-        {
+        } else {
             // Ładne wyjście z apki
         }
     }
@@ -178,13 +155,4 @@ public class MainActivity extends AppCompatActivity
         return mInstance;
     }
 
-    public RequestQueue getRequestQueue() {
-        if (requestQueue == null)
-            requestQueue = Volley.newRequestQueue(getApplicationContext());
-        return requestQueue;
-    }
-
-    public void cancelAllRequests(String tag) {
-        getRequestQueue().cancelAll(tag);
-    }
 }

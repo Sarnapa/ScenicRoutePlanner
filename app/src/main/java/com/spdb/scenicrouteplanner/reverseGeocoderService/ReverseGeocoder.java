@@ -1,76 +1,71 @@
 package com.spdb.scenicrouteplanner.reverseGeocoderService;
 
-import android.net.Uri;
+import android.os.AsyncTask;
 import android.util.Log;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.spdb.scenicrouteplanner.activity.MainActivity;
+
 import org.json.JSONArray;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
-public class ReverseGeocoder implements Runnable{
+public class ReverseGeocoder extends AsyncTask<String, Void, Address> {
+    private static final Integer CONNECTION_TIMEOUT = 10000;
+    private static final Integer READ_TIMEOUT = 10000;
+    private static final Integer WRITE_TIMEOUT = 10000;
 
     private static final String BASE_URL = "https://nominatim.openstreetmap.org/";
-    private static final int QUEUE_SIZE = 2;
-    private Uri url;
-    private String query;
-    public BlockingQueue<Address> getAddressQueue() {
-        return addressQueue;
-    }
 
-    private BlockingQueue<Address> addressQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
-    public ReverseGeocoder(String q){
-        query = q;
-    }
+    @Override
+    protected Address doInBackground(String... params) {
+        String query = params[0];
 
-    public void prepareAddress() throws Exception{
-        if(query.isEmpty()){
-            throw new Exception("Invalid query");
+        if (query.isEmpty()) {
+            this.cancel(true);
         }
-        Uri.Builder builder = new Uri.Builder();
-        builder.encodedPath(BASE_URL);
-        builder.appendQueryParameter("format","json");
-        builder.appendQueryParameter("limit","1");
-        builder.appendQueryParameter("q", query);
-        url = builder.build();
-        Log.d("REVERSE_GEOCODER", url.toString());
-        Log.d("REVERSE_GEOCODER", "KONIEC");
+        try {
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
+                    .writeTimeout(WRITE_TIMEOUT, TimeUnit.MILLISECONDS)
+                    .readTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS)
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(buildURL(query))
+                    .build();
+            Response response = client.newCall(request).execute();
+            String jsonData = response.body().string();
+            JSONArray jsonArray = new JSONArray(jsonData);
+            Log.d("REVERSE_GEOCODER", jsonArray.toString());
+            NominatimResponseHandler responseHandler = new NominatimResponseHandler(jsonArray);
+            Log.d("REVERSE_GEOCODER", "KONIEC");
+            return responseHandler.deserializeResponse();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        } catch (NullPointerException npe) {
+            npe.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private HttpUrl buildURL(String query) {
+        HttpUrl httpUrl = HttpUrl.parse(BASE_URL).newBuilder()
+                .addQueryParameter("format", "json")
+                .addQueryParameter("limit", "1")
+                .addQueryParameter("q", query)
+                .build();
+        return httpUrl;
     }
 
     @Override
-    public void run() {
-        JsonArrayRequest jsonRequest = new JsonArrayRequest
-                (Request.Method.GET, url.toString(), null, new Response.Listener<JSONArray>(){
-
-                    @Override
-                    public void onResponse(JSONArray response){
-                        Log.d("REVERSE_GEOCODER", "SUCCESS");
-                        Log.d("REVERSE_GEOCODER", response.toString());
-                        NominatimResponseHandler responseHandler = new NominatimResponseHandler(response);
-                        Address address = responseHandler.deserializeResponse();
-                        try {
-                            addressQueue.put(address);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error){
-                        Log.d("REVERSE_GEOCODER", error.getMessage());
-                        // TODO: Handle error
-                    }
-                });
-        MainActivity.getInstance().getRequestQueue().add(jsonRequest);
+    protected void onPostExecute(Address result) {
+        super.onPostExecute(result);
     }
 
-    public void start(){
-        Thread t = new Thread (this);
-        t.start ();
-    }
 }

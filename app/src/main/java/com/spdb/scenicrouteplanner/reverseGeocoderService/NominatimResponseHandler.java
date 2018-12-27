@@ -6,16 +6,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class NominatimResponseHandler{
+public class NominatimResponseHandler {
     private final JSONArray response;
 
-    public NominatimResponseHandler(JSONArray json){
+    public NominatimResponseHandler(JSONArray json) {
         response = json;
     }
 
-    public Address deserializeResponse(){
+    public Address deserializeResponse() {
         Address result = new Address();
-
         try {
             for (int i = 0; i < response.length(); i++) {
                 JSONObject object = response.getJSONObject(i);
@@ -28,7 +27,7 @@ public class NominatimResponseHandler{
                 result.setLatitude(object.getDouble("lat"));
                 result.setPlaceClass(object.getString("class"));
             }
-        } catch(JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
         return result;
