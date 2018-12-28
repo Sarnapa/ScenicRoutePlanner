@@ -1,4 +1,4 @@
-package com.spdb.scenicrouteplanner.reverseGeocoderService;
+package com.spdb.scenicrouteplanner.lib.OSM;
 
  /*
  [{
@@ -16,7 +16,7 @@ package com.spdb.scenicrouteplanner.reverseGeocoderService;
  }]
  */
 
-public class Address {
+public class Place {
     private String displayName;
     private int placeID;
     private String osmType;

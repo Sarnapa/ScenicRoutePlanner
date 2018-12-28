@@ -1,20 +1,22 @@
-package com.spdb.scenicrouteplanner.reverseGeocoderService;
+package com.spdb.scenicrouteplanner.httpService.OSMDataHttpService;
 
 import android.util.Log;
+
+import com.spdb.scenicrouteplanner.lib.OSM.Place;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class NominatimResponseHandler {
+class NominatimResponseHandler {
     private final JSONArray response;
 
-    public NominatimResponseHandler(JSONArray json) {
+    NominatimResponseHandler(JSONArray json) {
         response = json;
     }
 
-    public Address deserializeResponse() {
-        Address result = new Address();
+    Place deserializeResponse() {
+        Place result = new Place();
         try {
             for (int i = 0; i < response.length(); i++) {
                 JSONObject object = response.getJSONObject(i);

@@ -1,7 +1,10 @@
-package com.spdb.scenicrouteplanner.reverseGeocoderService;
+package com.spdb.scenicrouteplanner.httpService.OSMDataHttpService;
 
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.spdb.scenicrouteplanner.httpService.HttpService;
+import com.spdb.scenicrouteplanner.lib.OSM.Place;
 
 import org.json.JSONArray;
 
@@ -13,15 +16,21 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class ReverseGeocoder extends AsyncTask<String, Void, Address> {
+public class GetPlaceTask extends AsyncTask<String, Void, Place> implements HttpService {
+    // ==============================
+    // Private fields
+    // ==============================
     private static final Integer CONNECTION_TIMEOUT = 10000;
     private static final Integer READ_TIMEOUT = 10000;
     private static final Integer WRITE_TIMEOUT = 10000;
 
     private static final String BASE_URL = "https://nominatim.openstreetmap.org/";
 
+    // ==============================
+    // Override AsyncTask
+    // ==============================
     @Override
-    protected Address doInBackground(String... params) {
+    protected Place doInBackground(String... params) {
         String query = params[0];
 
         if (query.isEmpty()) {
@@ -40,9 +49,9 @@ public class ReverseGeocoder extends AsyncTask<String, Void, Address> {
             Response response = client.newCall(request).execute();
             String jsonData = response.body().string();
             JSONArray jsonArray = new JSONArray(jsonData);
-            Log.d("REVERSE_GEOCODER", jsonArray.toString());
+            Log.d("GET_PLACE_TASK", jsonArray.toString());
             NominatimResponseHandler responseHandler = new NominatimResponseHandler(jsonArray);
-            Log.d("REVERSE_GEOCODER", "KONIEC");
+            Log.d("GET_PLACE_TASK", "KONIEC");
             return responseHandler.deserializeResponse();
         } catch (IOException ioe) {
             ioe.printStackTrace();
@@ -54,18 +63,22 @@ public class ReverseGeocoder extends AsyncTask<String, Void, Address> {
         return null;
     }
 
-    private HttpUrl buildURL(String query) {
+    @Override
+    protected void onPostExecute(Place result) {
+        super.onPostExecute(result);
+    }
+
+    // ==============================
+    // Override HttpService
+    // ==============================
+    @Override
+    public HttpUrl buildURL(String query) {
         HttpUrl httpUrl = HttpUrl.parse(BASE_URL).newBuilder()
                 .addQueryParameter("format", "json")
                 .addQueryParameter("limit", "1")
                 .addQueryParameter("q", query)
                 .build();
         return httpUrl;
-    }
-
-    @Override
-    protected void onPostExecute(Address result) {
-        super.onPostExecute(result);
     }
 
 }

@@ -1,8 +1,10 @@
-package com.spdb.scenicrouteplanner.downloadMapService;
+package com.spdb.scenicrouteplanner.httpService.OSMMapHttpService;
 
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.util.Log;
+
+import com.spdb.scenicrouteplanner.httpService.HttpService;
+import com.spdb.scenicrouteplanner.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +17,10 @@ import okhttp3.Response;
 import okio.BufferedSink;
 import okio.Okio;
 
-public class DownloadMap extends AsyncTask<String, Integer, String> {
+public class GetMapTask extends AsyncTask<String, Integer, String> implements HttpService {
+    // ==============================
+    // Private fields
+    // ==============================
     private static final Integer CONNECTION_TIMEOUT = 10000;
     private static final Integer READ_TIMEOUT = 10000;
     private static final Integer WRITE_TIMEOUT = 10000;
@@ -23,6 +28,9 @@ public class DownloadMap extends AsyncTask<String, Integer, String> {
     private static final String BASE_URL = "http://api.openstreetmap.org/api/0.6/map";
     private static final String DIRECTORY = "/SRP/maps";
 
+    // ==============================
+    // Override AsyncTask
+    // ==============================
     @Override
     protected String doInBackground(String... params) {
         String query = params[0];
@@ -30,9 +38,9 @@ public class DownloadMap extends AsyncTask<String, Integer, String> {
             this.cancel(true);
         }
 
-        File destFile = buildPath("osm");
-        Log.d("DOWNLOAD_MAP", destFile.toString());
-        Log.d("DOWNLOAD_MAP", buildURL(query).toString());
+        File destFile = FileUtils.buildPath(DIRECTORY,"osm");
+        Log.d("GET_MAP_TASK", destFile.toString());
+        Log.d("GET_MAP_TASK", buildURL(query).toString());
         try {
             OkHttpClient client = new OkHttpClient.Builder()
                     .connectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
@@ -50,23 +58,18 @@ public class DownloadMap extends AsyncTask<String, Integer, String> {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-        Log.d("DOWNLOAD_MAP", "KONIEC");
+        Log.d("GET_MAP_TASK", "KONIEC");
         return null;
     }
 
-    private HttpUrl buildURL(String query) {
+    // ==============================
+    // Override HttpService
+    // ==============================
+    @Override
+    public HttpUrl buildURL(String query) {
         HttpUrl httpUrl = HttpUrl.parse(BASE_URL).newBuilder()
                 .addEncodedQueryParameter("bbox", query)
                 .build();
         return httpUrl;
-    }
-
-    private File buildPath(String filename) {
-        File dir = new File(Environment.getExternalStorageDirectory() + DIRECTORY);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        File file = new File(dir.getAbsolutePath() + "/" + filename);
-        return file;
     }
 }
