@@ -16,7 +16,7 @@ public class OSMService implements IOSMService
     // Override IOSMService
     // ==============================
     @Override
-    public Place GetPlace(String phrase) throws IllegalArgumentException
+    public Place getPlace(String phrase) throws IllegalArgumentException
     {
         if (phrase == null || phrase.isEmpty())
             throw new IllegalArgumentException("OSMService.GetPlace - empty phrase argument");
@@ -34,12 +34,12 @@ public class OSMService implements IOSMService
     }
 
     @Override
-    public GeoCoords GetPlaceCoords(String phrase) throws IllegalArgumentException
+    public GeoCoords getPlaceCoords(String phrase) throws IllegalArgumentException
     {
         if (phrase == null || phrase.isEmpty())
             throw new IllegalArgumentException("OSMService.GetPlaceCoords - empty phrase argument");
 
-        Place place = GetPlace(phrase);
+        Place place = getPlace(phrase);
         if (place != null)
             return new GeoCoords(place.getLatitude(), place.getLongitude());
         else
@@ -47,7 +47,7 @@ public class OSMService implements IOSMService
     }
 
     @Override
-    public void GetMapExtent(GeoCoords v1, GeoCoords v2) throws IllegalArgumentException
+    public void getMapExtent(GeoCoords v1, GeoCoords v2) throws IllegalArgumentException
     {
         if (v1 == null)
             throw new IllegalArgumentException("OSMService.GetMapExtent - null v1 argument");

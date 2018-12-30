@@ -5,8 +5,8 @@ import com.spdb.scenicrouteplanner.lib.OSM.Place;
 
 public interface IOSMService
 {
-    Place GetPlace(String phrase);
-    GeoCoords GetPlaceCoords(String phrase);
+    Place getPlace(String phrase);
+    GeoCoords getPlaceCoords(String phrase);
 
-    void GetMapExtent(GeoCoords v1, GeoCoords v2);
+    void getMapExtent(GeoCoords v1, GeoCoords v2);
 }
