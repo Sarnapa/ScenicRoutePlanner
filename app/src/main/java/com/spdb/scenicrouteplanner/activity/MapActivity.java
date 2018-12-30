@@ -8,12 +8,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.spdb.scenicrouteplanner.R;
+import com.spdb.scenicrouteplanner.service.MapService;
 
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.TileSystem;
 import org.osmdroid.views.MapView;
-
 
 public class MapActivity extends Fragment
 {
@@ -21,6 +20,16 @@ public class MapActivity extends Fragment
     // Private fields
     // ==============================
     private MapView mapView;
+    private static MapService mapService;
+
+    // ==============================
+    // Getters and Setters
+    // ==============================
+
+    public static MapService getMapService()
+    {
+        return mapService;
+    }
 
     // ==============================
     // Override Fragment
@@ -29,6 +38,8 @@ public class MapActivity extends Fragment
     public void onCreate(Bundle savedInstance)
     {
         super.onCreate(savedInstance);
+
+        mapService = new MapService();
     }
 
     @Nullable
@@ -58,6 +69,9 @@ public class MapActivity extends Fragment
         mapView.getTileProvider().getTileCache().setAutoEnsureCapacity(false);
 
         mapView.setTileSource(TileSourceFactory.DEFAULT_TILE_SOURCE);
+
+        mapService.setMapOverlayManager(mapView.getOverlayManager());
+        mapService.putAllEdgesOnMap();
 
         return mapView;
     }
@@ -90,5 +104,5 @@ public class MapActivity extends Fragment
 
     // ==============================
     // Private methods
-    // ==============================}
+    // ==============================
 }

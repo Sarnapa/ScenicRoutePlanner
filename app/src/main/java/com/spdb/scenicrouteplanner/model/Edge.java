@@ -7,6 +7,7 @@ public class Edge
     private Node startNode;
     private Node endNode;
     private double length;
+    private boolean isTourRoute;
 
     public Edge(int id, Way wayInfo, Node startNode, Node endNode, double length)
     {
@@ -15,6 +16,16 @@ public class Edge
         this.startNode = startNode;
         this.endNode = endNode;
         this.length = length;
+    }
+
+    public Edge(int id, Way wayInfo, Node startNode, Node endNode, double length, boolean isTourRoute)
+    {
+        this.id = id;
+        this.wayInfo = wayInfo;
+        this.startNode = startNode;
+        this.endNode = endNode;
+        this.length = length;
+        this.isTourRoute = isTourRoute;
     }
 
     public int getId()
@@ -65,5 +76,15 @@ public class Edge
     public void setLength(double length)
     {
         this.length = length;
+    }
+
+    public boolean isTourRoute()
+    {
+        return isTourRoute;
+    }
+
+    public void setTourRoute(boolean tourRoute)
+    {
+        isTourRoute = tourRoute;
     }
 }

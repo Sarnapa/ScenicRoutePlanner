@@ -2,6 +2,7 @@ package com.spdb.scenicrouteplanner.model;
 
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Node
@@ -9,6 +10,13 @@ public class Node
     private int id;
     private GeoCoords geoCoords;
     private List<Edge> edges;
+
+    public Node(int id, GeoCoords geoCoords)
+    {
+        this.id = id;
+        this.geoCoords = geoCoords;
+        this.edges = new ArrayList<>();
+    }
 
     public Node(int id, GeoCoords geoCoords, List<Edge> edges)
     {
