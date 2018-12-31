@@ -19,7 +19,7 @@ public class OSMService implements IOSMService
     public Place getPlace(String phrase) throws IllegalArgumentException
     {
         if (phrase == null || phrase.isEmpty())
-            throw new IllegalArgumentException("OSMService.GetPlace - empty phrase argument");
+            throw new IllegalArgumentException("OSMService.getPlace - empty phrase argument");
         try
         {
             GetPlaceTask getPlaceTask = new GetPlaceTask();
@@ -37,7 +37,7 @@ public class OSMService implements IOSMService
     public GeoCoords getPlaceCoords(String phrase) throws IllegalArgumentException
     {
         if (phrase == null || phrase.isEmpty())
-            throw new IllegalArgumentException("OSMService.GetPlaceCoords - empty phrase argument");
+            throw new IllegalArgumentException("OSMService.getPlaceCoords - empty phrase argument");
 
         Place place = getPlace(phrase);
         if (place != null)

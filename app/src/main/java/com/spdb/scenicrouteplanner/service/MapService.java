@@ -21,7 +21,7 @@ public class MapService implements IMapService
     // Private fields
     // ==============================
     private OverlayManager mapOverlayManager;
-    private HashMap<Integer, Polyline> mapPolylines = new HashMap<>();
+    private HashMap<Long, Polyline> mapPolylines = new HashMap<>();
 
     // ==============================
     // Getters and Setters

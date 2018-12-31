@@ -43,6 +43,7 @@ public class GetPlaceTask extends AsyncTask<String, Void, Place> implements Http
                     .readTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS)
                     .build();
 
+            Log.d("GET_PLACE_TASK", buildURL(query).toString());
             Request request = new Request.Builder()
                     .url(buildURL(query))
                     .build();
@@ -76,6 +77,7 @@ public class GetPlaceTask extends AsyncTask<String, Void, Place> implements Http
         HttpUrl httpUrl = HttpUrl.parse(BASE_URL).newBuilder()
                 .addQueryParameter("format", "json")
                 .addQueryParameter("limit", "1")
+                .addQueryParameter("osm_type", "W")
                 .addQueryParameter("q", query)
                 .build();
         return httpUrl;

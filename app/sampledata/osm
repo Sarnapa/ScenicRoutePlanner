@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="CGImap 0.6.1 (1884 thorn-03.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <bounds minlat="52.2179800" minlon="21.0095700" maxlat="52.2198700" maxlon="21.0135600"/>
+ <node id="3854331236" visible="true" version="1" changeset="35529387" timestamp="2015-11-23T12:39:25Z" user="kocio" uid="52087" lat="52.2196490" lon="21.0126715"/>
+ <node id="3874474211" visible="true" version="1" changeset="35724447" timestamp="2015-12-03T11:27:11Z" user="kocio" uid="52087" lat="52.2193074" lon="21.0131802"/>
+ <node id="32592495" visible="true" version="4" changeset="18008116" timestamp="2013-09-24T12:20:50Z" user="Javnik" uid="323284" lat="52.2188110" lon="21.0139196"/>
+ <node id="3854331236" visible="true" version="1" changeset="35529387" timestamp="2015-11-23T12:39:25Z" user="kocio" uid="52087" lat="52.2196490" lon="21.0126715"/>
+ <node id="3854331244" visible="true" version="2" changeset="52475934" timestamp="2017-09-29T13:50:55Z" user="Awizonosz" uid="6491543" lat="52.2198485" lon="21.0124152">
+  <tag k="highway" v="crossing"/>
+  <tag k="tactile_paving" v="yes"/>
+ </node>
+ <node id="3854331254" visible="true" version="2" changeset="52475934" timestamp="2017-09-29T13:50:58Z" user="Awizonosz" uid="6491543" lat="52.2198786" lon="21.0123816">
+  <tag k="highway" v="crossing"/>
+  <tag k="tactile_paving" v="yes"/>
+ </node>
+ <node id="316886476" visible="true" version="4" changeset="35529387" timestamp="2015-11-23T12:39:31Z" user="kocio" uid="52087" lat="52.2199111" lon="21.0123596"/>
+ <node id="4622547642" visible="true" version="1" changeset="45358470" timestamp="2017-01-21T21:02:53Z" user="gscscnd" uid="1701828" lat="52.2199321" lon="21.0123455">
+  <tag k="highway" v="give_way"/>
+ </node>
+ <node id="316886449" visible="true" version="6" changeset="17203398" timestamp="2013-08-03T12:26:57Z" user="Tomekg" uid="373244" lat="52.2199546" lon="21.0123308"/> 
+ <way id="382240872" visible="true" version="3" changeset="48177623" timestamp="2017-04-26T23:50:37Z" user="rmikke" uid="69607">
+  <nd ref="3854331236"/>
+  <nd ref="3874474211"/>
+  <nd ref="32592495"/>
+  <tag k="highway" v="tertiary"/>
+  <tag k="maxweight" v="2.5"/>
+  <tag k="name" v="Polna"/>
+  <tag k="surface" v="asphalt"/>
+  <tag k="wikidata" v="Q9365825"/>
+  <tag k="wikipedia" v="pl:Ulica Polna w Warszawie"/>
+ </way>
+ <way id="382240873" visible="true" version="4" changeset="51723634" timestamp="2017-09-04T15:18:02Z" user="Awizonosz" uid="6491543">
+  <nd ref="3854331236"/>
+  <nd ref="3854331244"/>
+  <nd ref="3854331254"/>
+  <nd ref="316886476"/>
+  <nd ref="4622547642"/>
+  <nd ref="316886449"/>
+  <tag k="highway" v="tertiary"/>
+  <tag k="lanes" v="1"/>
+  <tag k="name" v="Polna"/>
+  <tag k="oneway" v="yes"/>
+  <tag k="source:maxspeed" v="PL:urban"/>
+  <tag k="surface" v="asphalt"/>
+  <tag k="wikidata" v="Q9365825"/>
+  <tag k="wikipedia" v="pl:Ulica Polna w Warszawie"/>
+ </way> 
+ 
+ 
+ 
+  <relation id="7453216" visible="true" version="1" changeset="50927389" timestamp="2017-08-07T20:30:50Z" user="SLBM" uid="6429146">
+  <member type="way" ref="23485447" role="outer"/>
+  <member type="way" ref="513706397" role="inner"/>
+  <member type="way" ref="513706393" role="inner"/>
+  <tag k="access" v="private"/>
+  <tag k="amenity" v="parking"/>
+  <tag k="fee" v="yes"/>
+  <tag k="fixme" v="geometry"/>
+  <tag k="operator" v="Politechnika Warszawska"/>
+  <tag k="parking" v="surface"/>
+  <tag k="type" v="multipolygon"/>
+ </relation>
+</osm>
