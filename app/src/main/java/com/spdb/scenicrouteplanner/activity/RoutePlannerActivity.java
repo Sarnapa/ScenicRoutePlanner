@@ -9,12 +9,11 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 
 import com.spdb.scenicrouteplanner.R;
-import com.spdb.scenicrouteplanner.lib.GeoCoords;
-import com.spdb.scenicrouteplanner.lib.OSM.OSMClassLib;
+import com.spdb.scenicrouteplanner.database.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.model.Edge;
-import com.spdb.scenicrouteplanner.model.Node;
-import com.spdb.scenicrouteplanner.model.Way;
 import com.spdb.scenicrouteplanner.service.OSMService;
+
+import org.spatialite.database.SQLiteDatabase;
 
 import java.util.ArrayList;
 
@@ -57,6 +56,9 @@ public class RoutePlannerActivity extends Fragment
                 MapActivity.getMapService().removeAllEdges();
                 // Tutaj dostarczenie tych edgow
                 MapActivity.getMapService().addEdges(new ArrayList<Edge>());
+
+                RoutesDbProvider routesDbProvider = new RoutesDbProvider(getContext());
+                SQLiteDatabase db = routesDbProvider.getRoutesDb();
 
                 getFragmentManager().popBackStack();
             }
