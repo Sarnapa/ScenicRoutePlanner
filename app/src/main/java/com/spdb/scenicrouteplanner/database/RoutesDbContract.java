@@ -8,7 +8,7 @@ final class RoutesDbContract
     {
     }
 
-    public interface GeometryColumn
+    interface GeometryColumn
     {
         public static final String GEOMETRY_COL_NAME = "geometry";
     }
@@ -31,7 +31,7 @@ final class RoutesDbContract
         static final String IS_TOUR_ROUTE_CHECK_NAME = "is_tour_route_chk";
     }
 
-    static class WaysTable implements BaseColumns, GeometryColumn
+    static class WaysTable implements BaseColumns
     {
         static final String TABLE_NAME = "ways";
         static final String WAY_TYPE_COL_NAME = "way_type";
@@ -40,4 +40,17 @@ final class RoutesDbContract
         static final String WAY_TYPE_CHECK_NAME = "way_type_chk";
         static final String IS_SCENIC_ROUTE_CHECK_NAME = "is_scenic_route_chk";
     }
+
+    static final String LENGTH_COL_NAME = "len";
+}
+
+enum GeometryType
+{
+    POINT,
+    LINESTRING,
+    POLYGON,
+    MULTIPOINT,
+    MULTILINESTRING,
+    MULTIPOLYGON,
+    GEOMETRYCOLLECTION
 }

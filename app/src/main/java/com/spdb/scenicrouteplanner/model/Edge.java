@@ -11,6 +11,8 @@ public class Edge {
     private double length;
     private boolean isTourRoute;
 
+    public Edge() {}
+
     public Edge(long id, Way wayInfo, Node startNode, Node endNode, double length) {
         this.id = id;
         this.wayInfo = wayInfo;

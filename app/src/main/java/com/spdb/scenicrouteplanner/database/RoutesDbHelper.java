@@ -17,12 +17,12 @@ class RoutesDbHelper extends SQLiteOpenHelper
     // ==============================
     // Private fields
     // ==============================
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 3;
     private static final String DATABASE_NAME = "Routes.db";
 
     private static final String SQL_CREATE_NODES_TABLE = "CREATE TABLE " + NodesTable.TABLE_NAME +
             "( " + NodesTable._ID + " INTEGER PRIMARY KEY, " +
-            NodesTable.GEOMETRY_COL_NAME + " UNIQUE);";
+            NodesTable.GEOMETRY_COL_NAME + " GEOMETRY UNIQUE);";
     private static final String SQL_CREATE_EDGES_TABLE = "CREATE TABLE " + EdgesTable.TABLE_NAME +
             "( " + EdgesTable._ID + " INTEGER PRIMARY KEY, " +
             EdgesTable.WAY_ID_COL_NAME + " INTEGER, " +
@@ -33,12 +33,12 @@ class RoutesDbHelper extends SQLiteOpenHelper
             "CONSTRAINT " + EdgesTable.WAY_ID_FOREIGN_KEY_CONSTRAINT_NAME + " FOREIGN KEY " +
             "(" + EdgesTable.WAY_ID_COL_NAME + ") " +
             "REFERENCES " + WaysTable.TABLE_NAME + "(" + WaysTable._ID + "), " +
-            "CONSTRAINT " + EdgesTable.START_NODE_ID_FOREIGN_KEY_CONSTRAINT_NAME + " FOREIGN KEY " +
+            /*"CONSTRAINT " + EdgesTable.START_NODE_ID_FOREIGN_KEY_CONSTRAINT_NAME + " FOREIGN KEY " +
             "(" + EdgesTable.START_NODE_ID_COL_NAME + ") " +
             "REFERENCES " + NodesTable.TABLE_NAME + "(" + NodesTable._ID + "), " +
             "CONSTRAINT " + EdgesTable.END_NODE_ID_FOREIGN_KEY_CONSTRAINT_NAME + " FOREIGN KEY " +
             "(" + EdgesTable.END_NODE_ID_COL_NAME + ") " +
-            "REFERENCES " + NodesTable.TABLE_NAME + "(" + NodesTable._ID + "), " +
+            "REFERENCES " + NodesTable.TABLE_NAME + "(" + NodesTable._ID + "), " +*/
             "CONSTRAINT " + EdgesTable.IS_TOUR_ROUTE_CHECK_NAME + " CHECK " +
             "(" + EdgesTable.IS_TOUR_ROUTE_COL_NAME + " IN (0, 1))" + ");";
     private static final String SQL_CREATE_WAYS_TABLE = "CREATE TABLE " + WaysTable.TABLE_NAME +
@@ -52,18 +52,13 @@ class RoutesDbHelper extends SQLiteOpenHelper
             "(" + WaysTable.IS_SCENIC_ROUTE_COL_NAME + " IN (0, 1))" + ");";
 
 
-    /*private final Context context;
-    private final String dbPath;*/
-
     // ==============================
     // Constructors
     // ==============================
-    public RoutesDbHelper(Context context)
+    RoutesDbHelper(Context context)
     {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
 
-        /*this.context = context;
-        this.dbPath = getDatabaseDir() + DATABASE_NAME;*/
     }
 
     // ==============================
@@ -72,9 +67,9 @@ class RoutesDbHelper extends SQLiteOpenHelper
     @Override
     public void onCreate(SQLiteDatabase db)
     {
-        db.execSQL(SQL_CREATE_NODES_TABLE);
+        /*db.execSQL(SQL_CREATE_NODES_TABLE);
         db.rawQuery(recoverGeometryColumn(NodesTable.TABLE_NAME, NodesTable.GEOMETRY_COL_NAME,
-                OSM_SRID, GeometryType.POINT.getName()), null);
+                OSM_SRID, GeometryType.POINT.getName()), null);*/
         db.execSQL(SQL_CREATE_EDGES_TABLE);
         db.rawQuery(recoverGeometryColumn(EdgesTable.TABLE_NAME, EdgesTable.GEOMETRY_COL_NAME,
                 OSM_SRID, GeometryType.LINESTRING.getName()), null);
@@ -84,20 +79,19 @@ class RoutesDbHelper extends SQLiteOpenHelper
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
-        db.execSQL(getSqlDeleteTable(NodesTable.TABLE_NAME));
-        db.execSQL(getSqlDeleteTable(EdgesTable.TABLE_NAME));
-        db.execSQL(getSqlDeleteTable(WaysTable.TABLE_NAME));
+        if (newVersion > oldVersion)
+        {
+            db.execSQL(getSqlDeleteTable(NodesTable.TABLE_NAME));
+            db.execSQL(getSqlDeleteTable(EdgesTable.TABLE_NAME));
+            db.execSQL(getSqlDeleteTable(WaysTable.TABLE_NAME));
 
-        onCreate(db);
+            onCreate(db);
+        }
     }
 
     // ==============================
     // Private methods
     // ==============================
-    /*private String getDatabaseDir()
-    {
-        return context.getApplicationInfo().dataDir + "/databases/";
-    }*/
 
     private static String recoverGeometryColumn(String tableName, String geometryColName, int srid,
                                                 String geomType)

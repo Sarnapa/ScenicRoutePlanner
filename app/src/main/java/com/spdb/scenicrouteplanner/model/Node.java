@@ -7,15 +7,18 @@ import java.util.ArrayList;
 public class Node {
     private long id;
     private GeoCoords geoCoords;
-    private ArrayList<Edge> edges;
+    private ArrayList<Edge> edges = new ArrayList<>();
 
-    public Node(long id, GeoCoords geoCoords) {
+    public Node() {}
+
+    public Node(long id, GeoCoords geoCoords)
+    {
         this.id = id;
         this.geoCoords = geoCoords;
-        this.edges = new ArrayList<>();
     }
 
-    public Node(long id, GeoCoords geoCoords, ArrayList<Edge> edges) {
+    public Node(long id, GeoCoords geoCoords, ArrayList<Edge> edges)
+    {
         this.id = id;
         this.geoCoords = geoCoords;
         this.edges = edges;
