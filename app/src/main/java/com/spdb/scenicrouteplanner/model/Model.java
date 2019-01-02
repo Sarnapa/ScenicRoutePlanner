@@ -33,8 +33,8 @@ public class Model {
         for (HashMap.Entry<Long, Node> entry : nodes.entrySet()) {
             Node tmp = entry.getValue();
             GeoCoords tmpGeoCoords = tmp.getGeoCoords();
-            //Log.d("MODEL_TEST", tmp.getId() + " " + tmpGeoCoords.getLatitude() + " " + tmpGeoCoords.getLongitude());
-            System.out.println("MODEL_TEST: NODE:" + tmp.getId() + " " + tmpGeoCoords.getLatitude() + " " + tmpGeoCoords.getLongitude());
+            //Log.d("MODEL_TEST", tmp.getId() + " lat:" + tmpGeoCoords.getLatitude() + " lon:" + tmpGeoCoords.getLongitude());
+            System.out.println("MODEL_TEST: NODE:" + tmp.getId() + " lat:" + tmpGeoCoords.getLatitude() + " lon:" + tmpGeoCoords.getLongitude());
         }
     }
 
@@ -51,8 +51,8 @@ public class Model {
     public void printWays() {
         for (HashMap.Entry<Long, Way> entry : ways.entrySet()) {
             Way tmp = entry.getValue();
-            //Log.d("MODEL_TEST", tmp.getId() + " " + tmp.getWayType());
-            System.out.println("MODEL_TEST: WAY:" + tmp.getId() + " " + tmp.getWayType());
+            //Log.d("MODEL_TEST", "MODEL_TEST: WAY:" + tmp.getId() + " isScenicRoute:" + tmp.isScenicRoute()+ " wayType:" + tmp.getWayType());
+            System.out.println("MODEL_TEST: WAY:" + tmp.getId() + " isScenicRoute:" + tmp.isScenicRoute()+ " wayType:" + tmp.getWayType());
         }
     }
 

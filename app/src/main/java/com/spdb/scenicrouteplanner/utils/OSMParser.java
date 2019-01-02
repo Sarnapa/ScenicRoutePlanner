@@ -122,7 +122,7 @@ public class OSMParser {
                             if (!highway.isEmpty()) {
                                 try {
                                     OSMClassLib.WayType wayType = OSMClassLib.WayType.valueOf(highway.toUpperCase());
-                                    model.getWays().put(wayId, new Way(wayId, wayType, false, maxSpeed));
+                                    model.getWays().put(wayId, new Way(wayId, wayType, wayType.isScenicRoute(), maxSpeed));
                                     Log.d("PARSER_TEST", "WAY INSERTED:" + wayId);
                                 } catch (IllegalArgumentException e) {
                                     //TODO:jakos ladniej tego enuma?
