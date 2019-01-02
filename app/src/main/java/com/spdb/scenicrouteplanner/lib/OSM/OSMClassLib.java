@@ -21,6 +21,13 @@ public final class OSMClassLib
                     UNCLASSIFIED.name(), RESIDENTIAL.name(), SERVICE.name(),
                     UNKNOWN.name());
         }
+
+        public boolean isScenicRoute(){
+            if(this.name().equals("UNCLASSIFIED") || this.name().equals("RESIDENTIAL") || this.name().equals("SERVICE"))
+                return true;
+            else
+                return false;
+        }
     }
 
     public static final int OSM_SRID = 3857;
