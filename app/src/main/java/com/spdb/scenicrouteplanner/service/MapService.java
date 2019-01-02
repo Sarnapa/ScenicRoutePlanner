@@ -15,8 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MapService implements IMapService
-{
+public class MapService implements IMapService {
     // ==============================
     // Private fields
     // ==============================
@@ -27,25 +26,22 @@ public class MapService implements IMapService
     // Getters and Setters
     // ==============================
 
-    public OverlayManager getMapOverlayManager()
-    {
+    public OverlayManager getMapOverlayManager() {
         return mapOverlayManager;
     }
 
-    public void setMapOverlayManager(OverlayManager mapOverlayManager)
-    {
+    public void setMapOverlayManager(OverlayManager mapOverlayManager) {
         this.mapOverlayManager = mapOverlayManager;
     }
 
-    public MapService()
-    { }
+    public MapService() {
+    }
 
     // ==============================
     // Override IOSMService
     // ==============================
     @Override
-    public void addEdge(Edge edge) throws IllegalArgumentException
-    {
+    public void addEdge(Edge edge) throws IllegalArgumentException {
         if (edge == null)
             throw new IllegalArgumentException("MapService.addEdge - empty edge argument");
         Node startNode = edge.getStartNode();
@@ -61,22 +57,18 @@ public class MapService implements IMapService
         final GeoPoint endPoint = new GeoPoint(endNode.getGeoCoords().getLatitude(),
                 endNode.getGeoCoords().getLongitude());
 
-        result.setPoints(new ArrayList<GeoPoint>()
-        {
+        result.setPoints(new ArrayList<GeoPoint>() {
             {
                 add(startPoint);
                 add(endPoint);
             }
         });
-        if (edge.isTourRoute())
-        {
+        if (edge.isTourRoute()) {
             if (edge.getWayInfo().isScenicRoute())
                 result.setColor(EdgeColor.SCENIC_TOUR_ROUTE_COLOR);
             else
                 result.setColor(EdgeColor.STANDARD_TOUR_ROUTE_COLOR);
-        }
-        else
-        {
+        } else {
             if (edge.getWayInfo().isScenicRoute())
                 result.setColor(EdgeColor.SCENIC_ROUTE_COLOR);
             else
@@ -87,30 +79,26 @@ public class MapService implements IMapService
     }
 
     @Override
-    public void addEdges(List<Edge> edges) throws IllegalArgumentException
-    {
-        for (Edge e: edges)
+    public void addEdges(ArrayList<Edge> edges) throws IllegalArgumentException {
+        for (Edge e : edges)
             addEdge(e);
     }
 
     @Override
-    public void removeAllEdges()
-    {
+    public void removeAllEdges() {
         if (mapPolylines != null)
             mapPolylines.clear();
     }
 
     @Override
-    public void putAllEdgesOnMap()
-    {
+    public void putAllEdgesOnMap() {
         if (mapOverlayManager != null && mapPolylines != null && mapPolylines.size() > 0)
             mapOverlayManager.addAll(mapPolylines.values());
         else
             Log.d("MAP_SERVICE", "Not initialized map Overlay Manager.");
     }
 
-    private static final class EdgeColor
-    {
+    private static final class EdgeColor {
         final static int STANDARD_ROUTE_COLOR = Color.BLACK;
         final static int SCENIC_ROUTE_COLOR = Color.BLUE;
         final static int STANDARD_TOUR_ROUTE_COLOR = Color.RED;

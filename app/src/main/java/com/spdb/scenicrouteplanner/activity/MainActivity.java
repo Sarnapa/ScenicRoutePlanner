@@ -68,10 +68,6 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
-
-        OSMParser parser = new OSMParser();
-        Model model = parser.parseOSMFile(Environment.getExternalStorageDirectory() + "/SRP/maps/osm");
-        //model.printAll();
     }
 
     @Override
