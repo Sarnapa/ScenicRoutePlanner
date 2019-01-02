@@ -8,6 +8,7 @@ import com.spdb.scenicrouteplanner.lib.GeoCoords;
 import com.spdb.scenicrouteplanner.lib.OSM.Place;
 import com.spdb.scenicrouteplanner.service.interfaces.IOSMService;
 
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 public class OSMService implements IOSMService
@@ -59,7 +60,7 @@ public class OSMService implements IOSMService
         double minLatitude = Double.min(v1.getLatitude(), v2.getLatitude());
         double maxLatitude = Double.max(v1.getLatitude(), v2.getLatitude());
 
-        String getMapTaskParam = String.format("%f,%f,%f,%f", minLongitude, minLatitude,
+        String getMapTaskParam = String.format(Locale.US, "%f,%f,%f,%f", minLongitude, minLatitude,
                 maxLongitude, maxLatitude);
 
         try
