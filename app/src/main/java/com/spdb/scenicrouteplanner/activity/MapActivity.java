@@ -7,10 +7,13 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
 import com.spdb.scenicrouteplanner.service.MapService;
+import com.spdb.scenicrouteplanner.service.interfaces.IMapService;
 
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.TileSystem;
 import org.osmdroid.views.MapView;
 
@@ -26,9 +29,16 @@ public class MapActivity extends Fragment
     // Getters and Setters
     // ==============================
 
-    public static MapService getMapService()
+    public static IMapService getMapService()
     {
         return mapService;
+    }
+
+    public MapActivity()
+    {
+        super();
+
+        mapService = new MapService();
     }
 
     // ==============================
@@ -38,8 +48,6 @@ public class MapActivity extends Fragment
     public void onCreate(Bundle savedInstance)
     {
         super.onCreate(savedInstance);
-
-        mapService = new MapService();
     }
 
     @Nullable
@@ -72,6 +80,21 @@ public class MapActivity extends Fragment
 
         mapService.setMapOverlayManager(mapView.getOverlayManager());
         mapService.putAllEdgesOnMap();
+
+        mapView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
+        {
+            @Override
+            public void onGlobalLayout()
+            {
+                BoundingBox startMapExtent = mapService.getStartMapExtent();
+                if (startMapExtent != null)
+                {
+                    mapView.zoomToBoundingBox(startMapExtent, false);
+                }
+                mapView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+            }
+        });
 
         return mapView;
     }

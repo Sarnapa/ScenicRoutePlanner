@@ -13,7 +13,6 @@ import android.widget.ImageButton;
 import com.spdb.scenicrouteplanner.R;
 import com.spdb.scenicrouteplanner.database.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
-import com.spdb.scenicrouteplanner.lib.OSM.Place;
 import com.spdb.scenicrouteplanner.model.Model;
 import com.spdb.scenicrouteplanner.service.OSMService;
 import com.spdb.scenicrouteplanner.utils.OSMParser;
@@ -25,19 +24,40 @@ public class RoutePlannerActivity extends Fragment {
     // Private fields
     // ==============================
     private View routePlannerView;
+    private EditText startLocationEditText;
+    private EditText destinationEditText;
+    private EditText scenicRouteMinEditText;
+
     private OSMService osmService;
 
-    @Override
-    public void onCreate(Bundle savedInstance) {
-        super.onCreate(savedInstance);
+    public RoutePlannerActivity()
+    {
+        super();
 
         this.osmService = new OSMService();
     }
 
+    @Override
+    public void onCreate(Bundle savedInstance)
+    {
+        super.onCreate(savedInstance);
+    }
+
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
         routePlannerView = inflater.inflate(R.layout.activity_route_planner, container, false);
+
+        if (routePlannerView != null)
+        {
+            startLocationEditText = routePlannerView.findViewById(R.id.start_location);
+            startLocationEditText.setText("Warszawa, Nowowiejska 30");
+            destinationEditText = routePlannerView.findViewById(R.id.destination);
+            destinationEditText.setText("Warszawa, Nowogrodzka 70");
+            scenicRouteMinEditText = routePlannerView.findViewById(R.id.scenic_route_min_length);
+            scenicRouteMinEditText.setText("100");
+        }
 
         return routePlannerView;
     }
@@ -50,30 +70,31 @@ public class RoutePlannerActivity extends Fragment {
 
         findRoutePlannerButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                MapActivity.getMapService().removeAllEdges();
-                // Tutaj dostarczenie tych edgow
+            public void onClick(View v)
+            {
+                String start = startLocationEditText.getText().toString();
+                String dest = destinationEditText.getText().toString();
+                String scenicRouteMin = scenicRouteMinEditText.getText().toString();
 
-                EditText start_location = routePlannerView.findViewById(R.id.start_location);
-                String start = start_location.getText().toString();
-                EditText destination = routePlannerView.findViewById(R.id.destination);
-                String dest = destination.getText().toString();
-                EditText scenic_route_min_ = routePlannerView.findViewById(R.id.scenic_route_min_length);
-                String scenicRouteMin = destination.getText().toString();
+                if(!(start.isEmpty() || dest.isEmpty() || scenicRouteMin.isEmpty())) {
+                    MapActivity.getMapService().removeAllEdges();
 
-                OSMService osmService = new OSMService();
-                GeoCoords startCoords = osmService.getPlaceCoords(start);
-                GeoCoords destCoords = osmService.getPlaceCoords(dest);
-                osmService.getMapExtent(startCoords, destCoords);
+                    GeoCoords startCoords = osmService.getPlaceCoords(start);
+                    GeoCoords destCoords = osmService.getPlaceCoords(dest);
+                    osmService.getMapExtent(startCoords, destCoords);
 
-                OSMParser parser = new OSMParser();
-                Model model = parser.parseOSMFile(Environment.getExternalStorageDirectory() + "/SRP/maps/osm");
-                MapActivity.getMapService().addEdges(model.getEdges());
+                    OSMParser parser = new OSMParser();
+                    Model model = parser.parseOSMFile(Environment.getExternalStorageDirectory() + "/SRP/maps/osm");
+                    MapActivity.getMapService().addEdges(model.getEdges());
 
-                RoutesDbProvider routesDbProvider = new RoutesDbProvider(getContext());
-                SQLiteDatabase db = routesDbProvider.getRoutesDb();
+                    RoutesDbProvider routesDbProvider = new RoutesDbProvider(getContext());
+                    SQLiteDatabase db = routesDbProvider.getRoutesDb();
 
-                getFragmentManager().popBackStack();
+                    // Rozwiązanie chwilowe - start i koniec bedzie czytany z bazy
+                    MapActivity.getMapService().setStartMapExtent(startCoords, destCoords);
+
+                    getFragmentManager().popBackStack();
+                }
             }
         });
     }

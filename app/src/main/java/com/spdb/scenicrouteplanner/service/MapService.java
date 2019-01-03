@@ -3,29 +3,31 @@ package com.spdb.scenicrouteplanner.service;
 import android.graphics.Color;
 import android.util.Log;
 
+import com.spdb.scenicrouteplanner.lib.GeoCoords;
 import com.spdb.scenicrouteplanner.model.Edge;
 import com.spdb.scenicrouteplanner.model.Node;
 import com.spdb.scenicrouteplanner.service.interfaces.IMapService;
 
+import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.overlay.OverlayManager;
 import org.osmdroid.views.overlay.Polyline;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-public class MapService implements IMapService {
+public class MapService implements IMapService
+{
     // ==============================
     // Private fields
     // ==============================
     private OverlayManager mapOverlayManager;
-    private HashMap<Long, Polyline> mapPolylines = new HashMap<>();
+    private BoundingBox startMapExtent;
+    private List<Edge> mapEdges = new ArrayList<>();
 
     // ==============================
     // Getters and Setters
     // ==============================
-
     public OverlayManager getMapOverlayManager() {
         return mapOverlayManager;
     }
@@ -34,12 +36,36 @@ public class MapService implements IMapService {
         this.mapOverlayManager = mapOverlayManager;
     }
 
-    public MapService() {
-    }
+    // ==============================
+    // Constructors
+    // ==============================
+    public MapService() { }
 
     // ==============================
     // Override IOSMService
     // ==============================
+
+    // Gdy będzie baza, tej metody nie będzie i getStartMapExtent będzie czytal z bazy
+    @Override
+    public void setStartMapExtent(GeoCoords v1, GeoCoords v2)
+    {
+        double buffer = 0.001;
+
+        double north = Math.max(v1.getLatitude(), v2.getLatitude());
+        double south = Math.min(v1.getLatitude(), v2.getLatitude());
+        double east = Math.max(v1.getLongitude(), v2.getLongitude());
+        double west = Math.min(v1.getLongitude(), v2.getLongitude());
+
+        startMapExtent = new BoundingBox(north + buffer, east + buffer, south - buffer,
+                west - buffer);
+    }
+
+    @Override
+    public BoundingBox getStartMapExtent()
+    {
+        return startMapExtent;
+    }
+
     @Override
     public void addEdge(Edge edge) throws IllegalArgumentException {
         if (edge == null)
@@ -51,51 +77,63 @@ public class MapService implements IMapService {
         if (endNode == null)
             throw new IllegalArgumentException("MapService.addEdge - not defined end node");
 
-        Polyline result = new Polyline();
-        final GeoPoint startPoint = new GeoPoint(startNode.getGeoCoords().getLatitude(),
-                startNode.getGeoCoords().getLongitude());
-        final GeoPoint endPoint = new GeoPoint(endNode.getGeoCoords().getLatitude(),
-                endNode.getGeoCoords().getLongitude());
-
-        result.setPoints(new ArrayList<GeoPoint>() {
-            {
-                add(startPoint);
-                add(endPoint);
-            }
-        });
-        if (edge.isTourRoute()) {
-            if (edge.getWayInfo().isScenicRoute())
-                result.setColor(EdgeColor.SCENIC_TOUR_ROUTE_COLOR);
-            else
-                result.setColor(EdgeColor.STANDARD_TOUR_ROUTE_COLOR);
-        } else {
-            if (edge.getWayInfo().isScenicRoute())
-                result.setColor(EdgeColor.SCENIC_ROUTE_COLOR);
-            else
-                result.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
-        }
-
-        mapPolylines.put(edge.getId(), result);
+        mapEdges.add(edge);
     }
 
     @Override
-    public void addEdges(ArrayList<Edge> edges) throws IllegalArgumentException {
+    public void addEdges(List<Edge> edges) throws IllegalArgumentException {
         for (Edge e : edges)
             addEdge(e);
     }
 
     @Override
     public void removeAllEdges() {
-        if (mapPolylines != null)
-            mapPolylines.clear();
+        if (mapEdges != null)
+            mapEdges.clear();
     }
 
     @Override
-    public void putAllEdgesOnMap() {
-        if (mapOverlayManager != null && mapPolylines != null && mapPolylines.size() > 0)
-            mapOverlayManager.addAll(mapPolylines.values());
+    public void putAllEdgesOnMap()
+    {
+        if (mapOverlayManager != null && mapEdges != null && mapEdges.size() > 0)
+        {
+            List<Polyline> polylines = new ArrayList<>();
+            for (Edge e: mapEdges)
+            {
+                Node startNode = e.getStartNode();
+                Node endNode = e.getEndNode();
+                final GeoPoint startPoint = new GeoPoint(startNode.getGeoCoords().getLatitude(),
+                        startNode.getGeoCoords().getLongitude());
+                final GeoPoint endPoint = new GeoPoint(endNode.getGeoCoords().getLatitude(),
+                        endNode.getGeoCoords().getLongitude());
+
+                Polyline polyline = new Polyline();
+
+                polyline.setPoints(new ArrayList<GeoPoint>() {
+                    {
+                        add(startPoint);
+                        add(endPoint);
+                    }
+                });
+                if (e.isTourRoute()) {
+                    if (e.getWayInfo().isScenicRoute())
+                        polyline.setColor(EdgeColor.SCENIC_TOUR_ROUTE_COLOR);
+                    else
+                        polyline.setColor(EdgeColor.STANDARD_TOUR_ROUTE_COLOR);
+                } else {
+                    if (e.getWayInfo().isScenicRoute())
+                        polyline.setColor(EdgeColor.SCENIC_ROUTE_COLOR);
+                    else
+                        polyline.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
+                }
+
+                polylines.add(polyline);
+            }
+
+            mapOverlayManager.addAll(polylines);
+        }
         else
-            Log.d("MAP_SERVICE", "Not initialized map Overlay Manager.");
+            Log.d("MAP_SERVICE", "Not initialized map Overlay Manager or empty map edges collection.");
     }
 
     private static final class EdgeColor {
