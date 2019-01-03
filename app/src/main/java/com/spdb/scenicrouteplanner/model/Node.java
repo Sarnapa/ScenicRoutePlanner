@@ -9,16 +9,15 @@ public class Node {
     private GeoCoords geoCoords;
     private ArrayList<Edge> edges = new ArrayList<>();
 
-    public Node() {}
+    public Node() {
+    }
 
-    public Node(long id, GeoCoords geoCoords)
-    {
+    public Node(long id, GeoCoords geoCoords) {
         this.id = id;
         this.geoCoords = geoCoords;
     }
 
-    public Node(long id, GeoCoords geoCoords, ArrayList<Edge> edges)
-    {
+    public Node(long id, GeoCoords geoCoords, ArrayList<Edge> edges) {
         this.id = id;
         this.geoCoords = geoCoords;
         this.edges = edges;
@@ -42,6 +41,15 @@ public class Node {
 
     public ArrayList<Edge> getEdges() {
         return edges;
+    }
+
+    public ArrayList<Edge> getOutgoingEdges() {
+        ArrayList<Edge> outgoingEdges = new ArrayList<>();
+        for (Edge e : edges) {
+            if (e.getEndNode() != this)
+                outgoingEdges.add(e);
+        }
+        return outgoingEdges;
     }
 
     public void setEdges(ArrayList<Edge> edges) {
