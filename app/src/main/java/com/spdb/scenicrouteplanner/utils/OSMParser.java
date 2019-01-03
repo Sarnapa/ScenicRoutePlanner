@@ -18,8 +18,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 
 public class OSMParser {
 
@@ -30,7 +28,7 @@ public class OSMParser {
     private static final String KEY_TAG = "tag";
     private static final String KEY_ND = "nd";
 
-    public Model parseOSMFile(String filePath) {
+    public Model parseOSMFile(String filePath) throws Exception {
         XmlPullParserFactory parserFactory;
         try {
             parserFactory = XmlPullParserFactory.newInstance();
@@ -40,7 +38,9 @@ public class OSMParser {
             parser.setInput(is, null);
             return processParsing(parser);
         } catch (XmlPullParserException e) {
+            //TODO:Unexpected token (position:TEXT You requested to...
             e.printStackTrace();
+            throw new Exception("You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm");
         } catch (IOException e) {
             //TODO: FileNotFound
             e.printStackTrace();
@@ -117,14 +117,15 @@ public class OSMParser {
                                 try {
                                     OSMClassLib.WayType wayType = OSMClassLib.WayType.valueOf(highway.toUpperCase());
                                     Way newWay = new Way(wayId, wayType, wayType.isScenicRoute(), maxSpeed);
-                                    model.getWays().add(newWay);
+                                    model.getWays().put(wayId, newWay);
 
                                     for (Edge e : tmpEdges) {
                                         e.setWayInfo(newWay);
-                                        model.getEdges().add(e);
+                                        model.getEdges().put(e.getId(), e);
                                         e.getStartNode().getEdges().add(e);
                                         e.getEndNode().getEdges().add(e);
                                     }
+
                                     //Log.d("PARSER_TEST", "WAY INSERTED:" + wayId);
                                 } catch (IllegalArgumentException e) {
                                     //TODO:jakos ladniej tego enuma?

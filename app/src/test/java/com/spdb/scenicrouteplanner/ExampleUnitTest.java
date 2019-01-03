@@ -21,8 +21,12 @@ public class ExampleUnitTest {
 
     @Test
     public void parser_test() {
-        OSMParser parser = new OSMParser();
-        Model model = parser.parseOSMFile("./sampledata/osm");
-        model.printAll();
+        try {
+            OSMParser parser = new OSMParser();
+            Model model = parser.parseOSMFile("./sampledata/osm");
+            model.printAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
