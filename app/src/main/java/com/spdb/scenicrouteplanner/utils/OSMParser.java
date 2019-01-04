@@ -67,7 +67,7 @@ public class OSMParser {
                             long id = Long.parseLong(parser.getAttributeValue(null, "id"));
                             double lat = Double.parseDouble(parser.getAttributeValue(null, "lat"));
                             double lon = Double.parseDouble(parser.getAttributeValue(null, "lon"));
-                            model.getNodes().put(id, new Node(id, new GeoCoords(lat, lon)));
+                            model.addNode(new Node(id, new GeoCoords(lat, lon)));
                             eventType = parser.next();
                             break;
                         }
@@ -89,11 +89,11 @@ public class OSMParser {
                                 if (node1 == null) {
                                     nodeId1 = Long.parseLong(parser.getAttributeValue(null, "ref"));
                                     //Log.d("PARSER_TEST", "ND REF:" + nodeId1);
-                                    node1 = model.getNodes().get(nodeId1);
+                                    node1 = model.getNodeById(nodeId1);
                                 } else {
                                     nodeId2 = Long.parseLong(parser.getAttributeValue(null, "ref"));
                                     //Log.d("PARSER_TEST", "ND REF:" + nodeId2);
-                                    node2 = model.getNodes().get(nodeId2);
+                                    node2 = model.getNodeById(nodeId2);
                                     tmpEdges.add(new Edge(Edge.getNextId(), node1, node2));
                                     //Log.d("PARSER_TEST", "EDGE INSERTED:" + edgeId);
                                     nodeId1 = nodeId2;
@@ -117,11 +117,11 @@ public class OSMParser {
                                 try {
                                     OSMClassLib.WayType wayType = OSMClassLib.WayType.valueOf(highway.toUpperCase());
                                     Way newWay = new Way(wayId, wayType, wayType.isScenicRoute(), maxSpeed);
-                                    model.getWays().put(wayId, newWay);
+                                    model.addWay(newWay);
 
                                     for (Edge e : tmpEdges) {
                                         e.setWayInfo(newWay);
-                                        model.getEdges().put(e.getId(), e);
+                                        model.addEdge(e);
                                         e.getStartNode().getEdges().add(e);
                                         e.getEndNode().getEdges().add(e);
                                     }

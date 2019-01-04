@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class AStar {
 
-    public List<Edge> aStar(Model model, Node start, Node dest) {
+    public List<Edge> aStar(Node start, Node dest) {
         List<Node> openSet = new ArrayList<>();
         List<Node> closedSet = new ArrayList<>();
         Map<Node, List<Edge>> cameFrom = new HashMap<>();

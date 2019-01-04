@@ -28,15 +28,18 @@ public class ExampleUnitTest {
         try {
             OSMParser parser = new OSMParser();
             Model model = parser.parseOSMFile("./sampledata/osm");
-            //model.printAll();
+            model.printAll();
+
             AStar alg = new AStar();
-            List<Edge> path = alg.aStar(model, model.getNodes().get(new Long("3854331236")), model.getNodes().get(new Long("316886476")));
+            List<Edge> path = alg.aStar(model.getNodeById(new Long("3854331236")), model.getNodeById(new Long("316886476")));
             Double length = 0.0;
             for(Edge e: path){
                 System.out.println("ASTAR:" + e.getId() + "way:" + e.getWayInfo().getId() + " start:" + e.getStartNode().getId() + " end:" + e.getEndNode().getId());
                 length+= e.getLength();
             }
+
             System.out.println("ASTAR: length:" + length);
+
         } catch (Exception e) {
             e.printStackTrace();
         }

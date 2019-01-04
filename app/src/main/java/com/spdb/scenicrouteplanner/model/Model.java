@@ -10,27 +10,35 @@ import java.util.List;
 
 public class Model {
     private HashMap<Long, Node> nodes = new HashMap<>();
-    private HashMap<Long, Edge> edges = new HashMap<>();
-    private HashMap<Long, Way> ways = new HashMap<>();
+    private List<Edge> edges = new ArrayList<>();
+    private List<Way> ways = new ArrayList<>();
 
     public HashMap<Long, Node> getNodes() {
         return nodes;
     }
 
-    public HashMap<Long, Edge> getEdges() {
+    public List<Edge> getEdgesList() {
         return edges;
     }
 
-    public List<Edge> getEdgesList() {
-        return new ArrayList<>(edges.values());
-    }
-
-    public HashMap<Long, Way> getWays() {
+    public List<Way> getWaysList() {
         return ways;
     }
 
-    public List<Way> getWaysList() {
-        return new ArrayList<>(ways.values());
+    public void addNode(Node n) {
+        nodes.put(n.getId(), n);
+    }
+
+    public Node getNodeById(Long id) {
+        return nodes.get(id);
+    }
+
+    public void addEdge(Edge e) {
+        edges.add(e);
+    }
+
+    public void addWay(Way w) {
+        ways.add(w);
     }
 
     public void printAll() {
@@ -49,8 +57,7 @@ public class Model {
     }
 
     public void printEdges() {
-        for (HashMap.Entry<Long, Edge> entry : edges.entrySet()) {
-            Edge tmp = entry.getValue();
+        for (Edge tmp : edges) {
             Long nodeId1 = tmp.getStartNode().getId();
             Long nodeId2 = tmp.getEndNode().getId();
             //Log.d("MODEL_TEST", tmp.getId() + " way:" + tmp.getWayId() + " start:" + nodeId1 + " end:" + nodeId2);
@@ -59,8 +66,7 @@ public class Model {
     }
 
     public void printWays() {
-        for (HashMap.Entry<Long, Way> entry : ways.entrySet()) {
-            Way tmp = entry.getValue();
+        for (Way tmp : ways) {
             //Log.d("MODEL_TEST", "MODEL_TEST: WAY:" + tmp.getId() + " isScenicRoute:" + tmp.isScenicRoute()+ " wayType:" + tmp.getWayType());
             System.out.println("MODEL_TEST: WAY:" + tmp.getId() + " isScenicRoute:" + tmp.isScenicRoute() + " wayType:" + tmp.getWayType());
         }
