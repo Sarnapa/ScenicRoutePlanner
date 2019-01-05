@@ -27,6 +27,8 @@ public class GetMapTask extends AsyncTask<String, Integer, String> implements Ht
 
     private static final String BASE_URL = "http://api.openstreetmap.org/api/0.6/map";
     private static final String DIRECTORY = "/SRP/maps";
+    //http://www.overpass-api.de/api/xapi_meta?*[bbox=20.9327,52.2114,21.0526,52.2642]
+
 
     // ==============================
     // Override AsyncTask
@@ -39,8 +41,6 @@ public class GetMapTask extends AsyncTask<String, Integer, String> implements Ht
         }
 
         File destFile = FileUtils.buildPath(DIRECTORY,"osm");
-        Log.d("GET_MAP_TASK", destFile.toString());
-        Log.d("GET_MAP_TASK", buildURL(query).toString());
         try {
             OkHttpClient client = new OkHttpClient.Builder()
                     .connectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
@@ -49,7 +49,7 @@ public class GetMapTask extends AsyncTask<String, Integer, String> implements Ht
                     .build();
 
             Request request = new Request.Builder()
-                    .url(buildURL(query))
+                    .url("http://www.overpass-api.de/api/xapi_meta?" + query)
                     .build();
             Response response = client.newCall(request).execute();
             BufferedSink sink = Okio.buffer(Okio.sink(destFile));
@@ -65,6 +65,8 @@ public class GetMapTask extends AsyncTask<String, Integer, String> implements Ht
     // ==============================
     // Override HttpService
     // ==============================
+
+
     @Override
     public HttpUrl buildURL(String query) {
         HttpUrl httpUrl = HttpUrl.parse(BASE_URL).newBuilder()
@@ -72,4 +74,5 @@ public class GetMapTask extends AsyncTask<String, Integer, String> implements Ht
                 .build();
         return httpUrl;
     }
+
 }

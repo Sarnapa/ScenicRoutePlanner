@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Model {
-
     private HashMap<Long, Node> nodes = new HashMap<>();
     private List<Edge> edges = new ArrayList<>();
     private List<Way> ways = new ArrayList<>();
@@ -16,11 +15,11 @@ public class Model {
         return nodes;
     }
 
-    public List<Edge> getEdges() {
+    public List<Edge> getEdgesList() {
         return edges;
     }
 
-    public List<Way> getWays() {
+    public List<Way> getWaysList() {
         return ways;
     }
 
@@ -29,6 +28,22 @@ public class Model {
     public void setEdges(List<Edge> edges) { this.edges = edges; }
 
     public void setWays(List<Way> ways) { this.ways = ways; }
+
+    public void addNode(Node n) {
+        nodes.put(n.getId(), n);
+    }
+
+    public Node getNodeById(Long id) {
+        return nodes.get(id);
+    }
+
+    public void addEdge(Edge e) {
+        edges.add(e);
+    }
+
+    public void addWay(Way w) {
+        ways.add(w);
+    }
 
     public void printAll() {
         printNodes();

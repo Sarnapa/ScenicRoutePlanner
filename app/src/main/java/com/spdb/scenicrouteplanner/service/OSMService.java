@@ -60,7 +60,7 @@ public class OSMService implements IOSMService
         double minLatitude = Double.min(v1.getLatitude(), v2.getLatitude());
         double maxLatitude = Double.max(v1.getLatitude(), v2.getLatitude());
 
-        String getMapTaskParam = String.format(Locale.US, "%f,%f,%f,%f", minLongitude, minLatitude,
+        String getMapTaskParam = String.format(Locale.US, "*[bbox=%f,%f,%f,%f]", minLongitude, minLatitude,
                 maxLongitude, maxLatitude);
 
         try
