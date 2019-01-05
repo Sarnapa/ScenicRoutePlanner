@@ -99,7 +99,7 @@ public class OSMParser {
                                     nodeId1 = nodeId2;
                                     node1 = node2;
                                 }
-                                eventType = parser.nextTag(); //tu byl problem, tymczasowe rozwiazanie
+                                eventType = parser.nextTag(); //temporary
                                 eventType = parser.nextTag();
                                 //Log.d("PARSER_TEST", "NEXT TAG:" + parser.getName());
                             }
@@ -125,11 +125,9 @@ public class OSMParser {
                                         e.getStartNode().getEdges().add(e);
                                         e.getEndNode().getEdges().add(e);
                                     }
-
                                     //Log.d("PARSER_TEST", "WAY INSERTED:" + wayId);
                                 } catch (IllegalArgumentException e) {
-                                    //TODO:jakos ladniej tego enuma?
-                                    e.printStackTrace();
+                                    //TODO:omit
                                 }
 
                             }

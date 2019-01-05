@@ -76,22 +76,28 @@ public class RoutePlannerActivity extends Fragment {
 
                     GeoCoords startCoords = osmService.getPlaceCoords(start);
                     GeoCoords destCoords = osmService.getPlaceCoords(dest);
-                    osmService.getMapExtent(startCoords, destCoords);
-                    try {
-                        OSMParser parser = new OSMParser();
-                        Model model = parser.parseOSMFile(Environment.getExternalStorageDirectory() + "/SRP/maps/osm");
-                        MapActivity.getMapService().addEdges(model.getEdgesList());
-                    } catch (Exception e) {
-                        //TODO:You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm
-                        e.printStackTrace();
+                    Double latDiff = Math.abs(startCoords.getLatitude()-destCoords.getLatitude());
+                    Double lonDiff = Math.abs(startCoords.getLongitude()-destCoords.getLongitude());
+                    if((latDiff > 0.15) || (lonDiff > 0.15)){
+                        //TODO:Alert
+                    } else {
+                        osmService.getMapExtent(startCoords, destCoords);
+                        try {
+                            OSMParser parser = new OSMParser();
+                            Model model = parser.parseOSMFile(Environment.getExternalStorageDirectory() + "/SRP/maps/osm");
+                            MapActivity.getMapService().addEdges(model.getEdgesList());
+                        } catch (Exception e) {
+                            //TODO:You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm
+                            e.printStackTrace();
+                        }
+                        RoutesDbProvider routesDbProvider = new RoutesDbProvider(getContext());
+                        SQLiteDatabase db = routesDbProvider.getRoutesDb();
+
+                        // Rozwiązanie chwilowe - start i koniec bedzie czytany z bazy
+                        MapActivity.getMapService().setStartMapExtent(startCoords, destCoords);
+
+                        getFragmentManager().popBackStack();
                     }
-                    RoutesDbProvider routesDbProvider = new RoutesDbProvider(getContext());
-                    SQLiteDatabase db = routesDbProvider.getRoutesDb();
-
-                    // Rozwiązanie chwilowe - start i koniec bedzie czytany z bazy
-                    MapActivity.getMapService().setStartMapExtent(startCoords, destCoords);
-
-                    getFragmentManager().popBackStack();
                 }
             }
         });
