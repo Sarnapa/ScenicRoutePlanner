@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 
+import com.spdb.scenicrouteplanner.database.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.service.MapService;
 import com.spdb.scenicrouteplanner.service.interfaces.IMapService;
 
@@ -24,6 +25,7 @@ public class MapActivity extends Fragment
     // ==============================
     private MapView mapView;
     private static MapService mapService;
+    private static RoutesDbProvider dbProvider;
 
     // ==============================
     // Getters and Setters
@@ -33,6 +35,11 @@ public class MapActivity extends Fragment
     {
         return mapService;
     }
+    public static RoutesDbProvider getDbProvider()
+    {
+        return dbProvider;
+    }
+
 
     public MapActivity()
     {
@@ -48,6 +55,8 @@ public class MapActivity extends Fragment
     public void onCreate(Bundle savedInstance)
     {
         super.onCreate(savedInstance);
+
+        dbProvider = new RoutesDbProvider(getContext());
     }
 
     @Nullable

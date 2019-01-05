@@ -5,21 +5,19 @@ import android.content.Context;
 import com.spdb.scenicrouteplanner.lib.OSM.OSMClassLib;
 
 import static com.spdb.scenicrouteplanner.database.RoutesDbContract.*;
-import static com.spdb.scenicrouteplanner.lib.OSM.OSMClassLib.OSM_SRID;
 
 import org.spatialite.database.SQLiteDatabase;
 import org.spatialite.database.SQLiteOpenHelper;
-
-import mil.nga.wkb.geom.GeometryType;
 
 class RoutesDbHelper extends SQLiteOpenHelper
 {
     // ==============================
     // Private fields
     // ==============================
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
     private static final String DATABASE_NAME = "Routes.db";
 
+    private static final String SQL_INIT_SPATIAL_META_DATA = " SELECT InitSpatialMetaData(1)";
     private static final String SQL_CREATE_NODES_TABLE = "CREATE TABLE " + NodesTable.TABLE_NAME +
             "( " + NodesTable._ID + " INTEGER PRIMARY KEY, " +
             NodesTable.GEOMETRY_COL_NAME + " GEOMETRY UNIQUE);";
@@ -58,7 +56,6 @@ class RoutesDbHelper extends SQLiteOpenHelper
     RoutesDbHelper(Context context)
     {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-
     }
 
     // ==============================
@@ -67,26 +64,35 @@ class RoutesDbHelper extends SQLiteOpenHelper
     @Override
     public void onCreate(SQLiteDatabase db)
     {
+        // Ze wzgledu na problem generacji przestrzennych metadanych - zakomentowane.
+        // Baza dostarczana statycznie.
+        /*
+        db.rawQuery(SQL_INIT_SPATIAL_META_DATA, null);
         /*db.execSQL(SQL_CREATE_NODES_TABLE);
         db.rawQuery(recoverGeometryColumn(NodesTable.TABLE_NAME, NodesTable.GEOMETRY_COL_NAME,
-                OSM_SRID, GeometryType.POINT.getName()), null);*/
+                OSM_SRID, GeometryType.POINT.getName()), null);
         db.execSQL(SQL_CREATE_EDGES_TABLE);
         db.rawQuery(recoverGeometryColumn(EdgesTable.TABLE_NAME, EdgesTable.GEOMETRY_COL_NAME,
-                OSM_SRID, GeometryType.LINESTRING.getName()), null);
-        db.execSQL(SQL_CREATE_WAYS_TABLE);
+                OSM_SRID, GeometryType.MULTIPOINT.getName()), null);
+        db.execSQL(SQL_CREATE_WAYS_TABLE);*/
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
+        // Ze wzgledu na problem generacji przestrzennych metadanych - zakomentowane.
+        // Baza dostarczana w sposób statyczny.
+        /*
         if (newVersion > oldVersion)
         {
             db.execSQL(getSqlDeleteTable(NodesTable.TABLE_NAME));
             db.execSQL(getSqlDeleteTable(EdgesTable.TABLE_NAME));
             db.execSQL(getSqlDeleteTable(WaysTable.TABLE_NAME));
+            db.execSQL(getSqlDeleteTable(GEOMETRY_COLUMNS_TABLE_NAME));
+            db.execSQL(getSqlDeleteTable(SPATIAL_REF_SYS_TABLE_NAME));
 
             onCreate(db);
-        }
+        }*/
     }
 
     // ==============================
@@ -96,7 +102,7 @@ class RoutesDbHelper extends SQLiteOpenHelper
     private static String recoverGeometryColumn(String tableName, String geometryColName, int srid,
                                                 String geomType)
     {
-        return String.format("SELECT RecoverGeometryColumn('%s', '%s', %d, '%s');",
+        return String.format("SELECT RecoverGeometryColumn('%s', '%s', %d, '%s')",
                 tableName, geometryColName, srid, geomType);
     }
 

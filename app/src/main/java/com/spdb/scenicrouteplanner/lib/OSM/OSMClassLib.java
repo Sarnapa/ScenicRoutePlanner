@@ -30,5 +30,6 @@ public final class OSMClassLib
         }
     }
 
-    public static final int OSM_SRID = 3857;
+    public static final int OSM_SRID = 4326;
+    public static final int ETRS89_SRID = 3035;
 }

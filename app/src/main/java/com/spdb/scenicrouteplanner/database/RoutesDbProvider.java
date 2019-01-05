@@ -3,6 +3,7 @@ package com.spdb.scenicrouteplanner.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
@@ -18,7 +19,8 @@ import org.spatialite.database.SQLiteDatabase;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Matcher;
+import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
 public class RoutesDbProvider
 {
@@ -35,25 +37,20 @@ public class RoutesDbProvider
         dbHelper = new RoutesDbHelper(context);
     }
 
-    public SQLiteDatabase getRoutesDb()
-    {
-        return dbHelper.getReadableDatabase();
-    }
-
     // ==============================
     // Inserting data methods
     // ==============================
     public void addNode(Node n)
     {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put(NodesTable._ID, n.getId());
-        values.put(NodesTable.GEOMETRY_COL_NAME, String.format("%s(%f %f)", GeometryType.POINT.name(),
-                n.getGeoCoords().getLatitude(), n.getGeoCoords().getLongitude()));
-
         try
         {
+            SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
+
+            ContentValues values = new ContentValues();
+            values.put(NodesTable._ID, n.getId());
+            values.put(NodesTable.GEOMETRY_COL_NAME, String.format(Locale.US,"%s(%f %f)", GeometryType.POINT.name(),
+                    n.getGeoCoords().getLongitude(), n.getGeoCoords().getLatitude()));
+
             db.insert(NodesTable.TABLE_NAME, null, values);
         }
         catch (Exception e)
@@ -70,27 +67,28 @@ public class RoutesDbProvider
 
     public void addEdge(Edge e)
     {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
-        Node startNode = e.getStartNode();
-        GeoCoords startNodeGeoCoords = startNode.getGeoCoords();
-        Node endNode = e.getEndNode();
-        GeoCoords endNodeGeoCoords = endNode.getGeoCoords();
-
-        ContentValues values = new ContentValues();
-        values.put(EdgesTable._ID, e.getId());
-        values.put(EdgesTable.WAY_ID_COL_NAME, e.getWayInfo().getId());
-        values.put(EdgesTable.START_NODE_ID_COL_NAME, startNode.getId());
-        values.put(EdgesTable.END_NODE_ID_COL_NAME, endNode.getId());
-        values.put(EdgesTable.IS_TOUR_ROUTE_COL_NAME, e.isTourRoute() ? 1 : 0);
-        values.put(EdgesTable.GEOMETRY_COL_NAME, String.format("%s(%f %f, %f %f)",
-                GeometryType.LINESTRING.name(),
-                startNodeGeoCoords.getLatitude(), startNodeGeoCoords.getLongitude(),
-                endNodeGeoCoords.getLatitude(), endNodeGeoCoords.getLongitude()));
-
         try
         {
-            db.insert(NodesTable.TABLE_NAME, null, values);
+            SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
+
+            Node startNode = e.getStartNode();
+            GeoCoords startNodeGeoCoords = startNode.getGeoCoords();
+            Node endNode = e.getEndNode();
+            GeoCoords endNodeGeoCoords = endNode.getGeoCoords();
+
+            ContentValues values = new ContentValues();
+            values.put(EdgesTable._ID, e.getId());
+            values.put(EdgesTable.WAY_ID_COL_NAME, e.getWayInfo().getId());
+            values.put(EdgesTable.START_NODE_ID_COL_NAME, startNode.getId());
+            values.put(EdgesTable.END_NODE_ID_COL_NAME, endNode.getId());
+            values.put(EdgesTable.IS_TOUR_ROUTE_COL_NAME, e.isTourRoute() ? 1 : 0);
+            // W 4326 najpierw long, później lat
+            values.put(EdgesTable.GEOMETRY_COL_NAME, String.format(Locale.US,"%s(%f %f, %f %f)",
+                    GeometryType.MULTIPOINT.name(),
+                    startNodeGeoCoords.getLongitude(), startNodeGeoCoords.getLatitude(),
+                    endNodeGeoCoords.getLongitude(), endNodeGeoCoords.getLatitude()));
+
+            db.insert(EdgesTable.TABLE_NAME, null, values);
         }
         catch (Exception ex)
         {
@@ -106,16 +104,16 @@ public class RoutesDbProvider
 
     public void addWay(Way w)
     {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put(WaysTable._ID, w.getId());
-        values.put(WaysTable.WAY_TYPE_COL_NAME, w.getWayType().name());
-        values.put(WaysTable.IS_SCENIC_ROUTE_COL_NAME, w.isScenicRoute() ? 1 : 0);
-        values.put(WaysTable.MAX_SPEED_COL_NAME, w.getMaxSpeed());
-
         try
         {
+            SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
+
+            ContentValues values = new ContentValues();
+            values.put(WaysTable._ID, w.getId());
+            values.put(WaysTable.WAY_TYPE_COL_NAME, w.getWayType().name());
+            values.put(WaysTable.IS_SCENIC_ROUTE_COL_NAME, w.isScenicRoute() ? 1 : 0);
+            values.put(WaysTable.MAX_SPEED_COL_NAME, w.getMaxSpeed());
+
             db.insert(WaysTable.TABLE_NAME, null, values);
         }
         catch (Exception e)
@@ -134,6 +132,13 @@ public class RoutesDbProvider
     // Removing data methods
     // ==============================
 
+    public void clearDb()
+    {
+        removeAllWays();
+        //removeAllNodes();
+        removeAllEdges();
+    }
+
     public int removeAllNodes()
     {
         return removeAllRows(NodesTable.TABLE_NAME);
@@ -151,10 +156,10 @@ public class RoutesDbProvider
 
     private int removeAllRows(String tableName)
     {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
         try
         {
+            SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
+
             return db.delete(tableName, null, null);
         }
         catch (Exception e)
@@ -170,7 +175,16 @@ public class RoutesDbProvider
 
     public List<Edge> getAllEdges()
     {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        SQLiteDatabase db;
+        try
+        {
+            db = new GetDatabaseTask().execute(false).get();
+        }
+        catch (ExecutionException | InterruptedException e)
+        {
+            Log.d("ROUTES_DB_PROVIDER", e.getMessage());
+            return null;
+        }
 
         List<Edge> res = new ArrayList<>();
         HashMap<Long, Node> nodes = new HashMap<>();
@@ -182,7 +196,7 @@ public class RoutesDbProvider
                 EdgesTable.END_NODE_ID_COL_NAME,
                 EdgesTable.IS_TOUR_ROUTE_COL_NAME,
                 EdgesTable.GEOMETRY_COL_NAME,
-                String.format("Length(%s) AS %s", EdgesTable.GEOMETRY_COL_NAME, LENGTH_COL_NAME)
+                getLengthSQL(EdgesTable.GEOMETRY_COL_NAME, LENGTH_COL_NAME, OSM_SRID, ETRS89_SRID)
         };
 
         Cursor edgesCursor = db.query(EdgesTable.TABLE_NAME,
@@ -201,7 +215,7 @@ public class RoutesDbProvider
             long endNodeId = edgesCursor.getLong(edgesCursor.getColumnIndexOrThrow(EdgesTable.END_NODE_ID_COL_NAME));
             boolean isTourRoute = edgesCursor.getInt(edgesCursor.getColumnIndexOrThrow(EdgesTable.IS_TOUR_ROUTE_COL_NAME)) == 1;
             String edgeGeom = edgesCursor.getString(edgesCursor.getColumnIndexOrThrow(EdgesTable.GEOMETRY_COL_NAME));
-            int edgeLength = edgesCursor.getInt(edgesCursor.getColumnIndexOrThrow(LENGTH_COL_NAME));
+            double edgeLength = edgesCursor.getDouble(edgesCursor.getColumnIndexOrThrow(LENGTH_COL_NAME));
 
             Way edgeWayInfo = null;
 
@@ -212,7 +226,7 @@ public class RoutesDbProvider
             };
 
             String selection = WaysTable._ID + " = ?";
-            String[] selectionArgs = { String.format("%d", wayId)};
+            String[] selectionArgs = { String.format(Locale.US, "%d", wayId)};
 
             Cursor wayCursor = db.query(WaysTable.TABLE_NAME,
                     wayProjection,
@@ -222,8 +236,8 @@ public class RoutesDbProvider
                     null,
                     null);
 
-            if (wayCursor.isFirst())
-                edgeWayInfo = new Way(edgeId,
+            if (wayCursor.moveToFirst())
+                edgeWayInfo = new Way(wayId,
                         WayType.valueOf(wayCursor.getString(wayCursor.getColumnIndexOrThrow(WaysTable.WAY_TYPE_COL_NAME))),
                         wayCursor.getInt(wayCursor.getColumnIndexOrThrow(WaysTable.IS_SCENIC_ROUTE_COL_NAME)) == 1,
                         wayCursor.getInt(wayCursor.getColumnIndexOrThrow(WaysTable.MAX_SPEED_COL_NAME)));
@@ -240,7 +254,7 @@ public class RoutesDbProvider
             else
             {
                 startNode.setId(startNodeId);
-                GeoCoords startNodeGeoCoords = GetNodeGeoCoordsFromEdge(edgeGeom, 0);
+                GeoCoords startNodeGeoCoords = getNodeGeoCoordsFromEdge(edgeGeom, 0);
                 startNode.setGeoCoords(startNodeGeoCoords);
             }
 
@@ -250,7 +264,7 @@ public class RoutesDbProvider
             else
             {
                 endNode.setId(endNodeId);
-                GeoCoords endNodeGeoCoords = GetNodeGeoCoordsFromEdge(edgeGeom, 1);
+                GeoCoords endNodeGeoCoords = getNodeGeoCoordsFromEdge(edgeGeom, 1);
                 endNode.setGeoCoords(endNodeGeoCoords);
             }
 
@@ -266,23 +280,48 @@ public class RoutesDbProvider
     }
 
     // ==============================
-    // Private methods
+    // Private methods / tasks
     // ==============================
 
-    private static GeoCoords GetNodeGeoCoordsFromEdge(String geom, int idx)
+    private static GeoCoords getNodeGeoCoordsFromEdge(String geom, int idx)
     {
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile("-?\\d+");
-        Matcher m = p.matcher(geom);
+        String coordsText = geom.substring(geom.indexOf('(') + 1, geom.indexOf(')')).replaceAll(",", "");
+        String[] coordsArray = coordsText.split(" ");
         switch (idx)
         {
             case 0:
             case 1:
             {
-                return new GeoCoords(Double.parseDouble(m.group(idx * 2)),
-                        Double.parseDouble(m.group(idx * 2 + 1)));
+                return new GeoCoords(Double.parseDouble(coordsArray[idx * 2 + 1]),
+                        Double.parseDouble(coordsArray[idx * 2]));
             }
             default:
                 return null;
+        }
+    }
+
+    private static String getLengthSQL(String geomColName, String lengthColName, int srcSrid, int dstSrid)
+    {
+        return String.format(Locale.US,
+                "Distance(Transform(GeometryN(GeomFromText(%s, %d), 1), %d), " +
+                "Transform(GeometryN(GeomFromText(%s, %d), 2), %d)) AS %s",
+                geomColName, srcSrid, dstSrid, geomColName, srcSrid, dstSrid, lengthColName);
+
+    }
+
+    class GetDatabaseTask extends AsyncTask<Boolean, Integer, SQLiteDatabase>
+    {
+        @Override
+        protected SQLiteDatabase doInBackground(Boolean... isGettingWritable)
+        {
+            if(isGettingWritable.length > 0)
+            {
+                if (isGettingWritable[0])
+                    return dbHelper.getWritableDatabase();
+                else
+                    return dbHelper.getReadableDatabase();
+            }
+            return null;
         }
     }
 }

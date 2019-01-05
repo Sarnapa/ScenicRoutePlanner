@@ -42,6 +42,10 @@ final class RoutesDbContract
     }
 
     static final String LENGTH_COL_NAME = "len";
+
+    // Metadane przestrzenne
+    static final String GEOMETRY_COLUMNS_TABLE_NAME = "geometry_columns";
+    static final String SPATIAL_REF_SYS_TABLE_NAME = "spatial_ref_sys";
 }
 
 enum GeometryType

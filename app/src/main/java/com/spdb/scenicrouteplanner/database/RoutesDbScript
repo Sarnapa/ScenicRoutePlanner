@@ -1,0 +1,26 @@
+CREATE TABLE ways
+(
+_id INTEGER PRIMARY KEY,
+way_type TEXT,
+is_scenic_route INTEGER,
+max_speed INTEGER,
+CONSTRAINT way_type_chk CHECK (way_type IN ('MOTORWAY', 'TRUNK', 'PRIMARY', 'SECONDARY', 'TERTIARY',
+'UNCLASSIFIED', 'RESIDENTIAL', 'SERVICE', 'UNKNOWN')),
+CONSTRAINT is_scenic_route_chk CHECK (is_scenic_route IN (0, 1))
+);
+
+CREATE TABLE edges
+(
+_id INTEGER PRIMARY KEY,
+way_id INTEGER,
+start_node_id INTEGER,
+end_node_id INTEGER,
+is_tour_route INTEGER,
+geometry UNIQUE,
+CONSTRAINT way_id_fk FOREIGN KEY (way_id) REFERENCES ways (_id),
+CONSTRAINT is_tour_route_chk CHECK (is_tour_route IN (0, 1))
+);
+
+SELECT RecoverGeometryColumn('edges', 'geometry', 4326, 'MULTIPOINT', 'XY');
+
+DB path -> /data/data/com.spdb.scenicrouteplanner/databases/Routes.db
