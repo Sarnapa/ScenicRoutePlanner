@@ -1,28 +1,34 @@
 package com.spdb.scenicrouteplanner.model;
 
-import android.util.Log;
-
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Model {
+
     private HashMap<Long, Node> nodes = new HashMap<>();
-    private ArrayList<Edge> edges = new ArrayList<>();
-    private ArrayList<Way> ways = new ArrayList<>();
+    private List<Edge> edges = new ArrayList<>();
+    private List<Way> ways = new ArrayList<>();
 
     public HashMap<Long, Node> getNodes() {
         return nodes;
     }
 
-    public ArrayList<Edge> getEdges() {
+    public List<Edge> getEdges() {
         return edges;
     }
 
-    public ArrayList<Way> getWays() {
+    public List<Way> getWays() {
         return ways;
     }
+
+    public void setNodes(HashMap<Long, Node> nodes) { this.nodes = nodes; }
+
+    public void setEdges(List<Edge> edges) { this.edges = edges; }
+
+    public void setWays(List<Way> ways) { this.ways = ways; }
 
     public void printAll() {
         printNodes();
