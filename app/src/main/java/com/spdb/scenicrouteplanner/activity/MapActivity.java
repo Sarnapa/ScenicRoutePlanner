@@ -89,6 +89,7 @@ public class MapActivity extends Fragment
 
         mapService.setMapOverlayManager(mapView.getOverlayManager());
         mapService.putAllEdgesOnMap();
+        mapService.putStartEndNodeOnMap();
 
         mapView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
         {

@@ -10,7 +10,9 @@ import com.spdb.scenicrouteplanner.service.interfaces.IMapService;
 
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.OverlayManager;
+import org.osmdroid.views.overlay.Polygon;
 import org.osmdroid.views.overlay.Polyline;
 
 import java.util.ArrayList;
@@ -23,6 +25,8 @@ public class MapService implements IMapService
     // ==============================
     private OverlayManager mapOverlayManager;
     private BoundingBox startMapExtent;
+    private Node startNode;
+    private Node endNode;
     private List<Edge> mapEdges = new ArrayList<>();
 
     // ==============================
@@ -61,6 +65,12 @@ public class MapService implements IMapService
     }
 
     @Override
+    public void setStartNode(Node n) { this.startNode = n; }
+
+    @Override
+    public void setEndNode(Node n) { this.endNode = n; }
+
+    @Override
     public BoundingBox getStartMapExtent()
     {
         return startMapExtent;
@@ -87,9 +97,30 @@ public class MapService implements IMapService
     }
 
     @Override
+    public void removeStartEndNode() {
+        startNode = null;
+        endNode = null;
+    }
+
+    @Override
     public void removeAllEdges() {
         if (mapEdges != null)
             mapEdges.clear();
+    }
+
+    @Override
+    public void putStartEndNodeOnMap()
+    {
+        if (mapOverlayManager != null && startNode != null && endNode != null)
+        {
+            Overlay startPoint = getNodePoint(startNode, NodeColor.START_COLOR);
+            Overlay endPoint = getNodePoint(endNode, NodeColor.END_COLOR);
+
+            mapOverlayManager.add(startPoint);
+            mapOverlayManager.add(endPoint);
+        }
+        else
+            Log.d("MAP_SERVICE", "Not initialized map Overlay Manager or null nodes.");
     }
 
     @Override
@@ -134,6 +165,34 @@ public class MapService implements IMapService
         }
         else
             Log.d("MAP_SERVICE", "Not initialized map Overlay Manager or empty map edges collection.");
+    }
+
+    // ==============================
+    // Private methods
+    // ==============================
+
+    private Polygon getNodePoint(Node n, int color)
+    {
+        final GeoPoint point = new GeoPoint(n.getGeoCoords().getLatitude(), n.getGeoCoords().getLongitude());
+
+        final double radius = 5;
+        ArrayList<GeoPoint> circlePoints = new ArrayList<GeoPoint>();
+        for (float f = 0; f < 360; f += 1.0)
+        {
+            circlePoints.add(point.destinationPoint(radius, f));
+        }
+
+        Polygon nodePoint = new Polygon();
+        nodePoint.setPoints(circlePoints);
+        nodePoint.setStrokeColor(Color.BLACK);
+        nodePoint.setFillColor(color);
+
+        return nodePoint;
+    }
+
+    private static final class NodeColor {
+        final static int START_COLOR = Color.rgb(0, 200, 200);
+        final static int END_COLOR = Color.rgb(0, 200, 0);
     }
 
     private static final class EdgeColor {

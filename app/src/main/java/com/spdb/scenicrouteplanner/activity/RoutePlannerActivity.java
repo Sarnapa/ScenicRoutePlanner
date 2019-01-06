@@ -77,6 +77,7 @@ public class RoutePlannerActivity extends Fragment {
                 if(!(start.isEmpty() || dest.isEmpty() || scenicRouteMin.isEmpty()))
                 {
                     MapActivity.getMapService().removeAllEdges();
+                    MapActivity.getMapService().removeStartEndNode();
 
                     RoutesDbProvider dbProvider = MapActivity.getDbProvider();
                     dbProvider.clearDb();
@@ -101,9 +102,13 @@ public class RoutePlannerActivity extends Fragment {
                             dbProvider.addEdges(model.getEdgesList());
                             model.setEdges(dbProvider.getAllEdges());
 
-                            MapActivity.getMapService().addEdges(model.getEdgesList());
+                            long startNodeId = dbProvider.getClosestNodeId(startCoords);
+                            long endNodeId = dbProvider.getClosestNodeId(destCoords);
 
+                            MapActivity.getMapService().addEdges(model.getEdgesList());
                             MapActivity.getMapService().setStartMapExtent(startCoords, destCoords);
+                            MapActivity.getMapService().setStartNode(model.getNodeById(startNodeId));
+                            MapActivity.getMapService().setEndNode(model.getNodeById(endNodeId));
 
                         }
                         catch (Exception e)

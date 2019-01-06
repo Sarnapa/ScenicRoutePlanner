@@ -279,6 +279,54 @@ public class RoutesDbProvider
         return res;
     }
 
+    public long getClosestNodeId(GeoCoords coords) throws IllegalArgumentException
+    {
+        if (coords == null)
+            throw new IllegalArgumentException("RoutesDbProvider.GetClosestNodeId - null coords argument");
+
+        SQLiteDatabase db;
+        try
+        {
+            db = new GetDatabaseTask().execute(false).get();
+        }
+        catch (ExecutionException | InterruptedException e)
+        {
+            Log.d("ROUTES_DB_PROVIDER", e.getMessage());
+            return -1;
+        }
+
+        double latCoord = coords.getLatitude();
+        double longCoord = coords.getLongitude();
+
+        final String START_NODE_LEN_COL_NAME = "len1";
+        final String END_NODE_LEN_COL_NAME = "len2";
+
+        final String SQL_NEAREST_POINT = String.format(Locale.US,
+                "SELECT Min(Distance(GeomFromText(%s), GeomFromText('Point(%f %f)'))), \n" +
+                "%s, Distance(GeometryN(GeomFromText(%s), 1), GeomFromText('Point(%f %f)')) AS %s,\n" +
+                "%s, Distance(GeometryN(GeomFromText(%s), 2), GeomFromText('Point(%f %f)')) AS %s\n" +
+                "FROM %s;", EdgesTable.GEOMETRY_COL_NAME, longCoord, latCoord,
+                EdgesTable.START_NODE_ID_COL_NAME, EdgesTable.GEOMETRY_COL_NAME, longCoord, latCoord, START_NODE_LEN_COL_NAME,
+                EdgesTable.END_NODE_ID_COL_NAME, EdgesTable.GEOMETRY_COL_NAME, longCoord, latCoord, END_NODE_LEN_COL_NAME,
+                EdgesTable.TABLE_NAME);
+
+        Cursor cursor = db.rawQuery(SQL_NEAREST_POINT, null);
+
+        if(cursor.moveToFirst())
+        {
+            double len1 = cursor.getDouble(cursor.getColumnIndexOrThrow(START_NODE_LEN_COL_NAME));
+            long startNodeId = cursor.getLong(cursor.getColumnIndexOrThrow(EdgesTable.START_NODE_ID_COL_NAME));
+            double len2 = cursor.getDouble(cursor.getColumnIndexOrThrow(END_NODE_LEN_COL_NAME));
+            long endNodeId = cursor.getLong(cursor.getColumnIndexOrThrow(EdgesTable.END_NODE_ID_COL_NAME));
+
+            if (len1 < len2)
+                return startNodeId;
+            else
+                return endNodeId;
+        }
+        return -1;
+    }
+
     // ==============================
     // Private methods / tasks
     // ==============================
