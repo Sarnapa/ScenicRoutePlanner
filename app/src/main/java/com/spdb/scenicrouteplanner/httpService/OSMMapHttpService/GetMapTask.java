@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.spdb.scenicrouteplanner.httpService.HttpService;
+import com.spdb.scenicrouteplanner.lib.PathsClassLib;
 import com.spdb.scenicrouteplanner.utils.FileUtils;
 
 import java.io.File;
@@ -26,7 +27,7 @@ public class GetMapTask extends AsyncTask<String, Integer, String> implements Ht
     private static final Integer WRITE_TIMEOUT = 10000;
 
     private static final String BASE_URL = "http://api.openstreetmap.org/api/0.6/map";
-    private static final String DIRECTORY = "/SRP/maps";
+    private static final String DIRECTORY = PathsClassLib.MAPS_DIRECTORY;
     //http://www.overpass-api.de/api/xapi_meta?*[bbox=20.9327,52.2114,21.0526,52.2642]
 
 

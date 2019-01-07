@@ -23,4 +23,4 @@ CONSTRAINT is_tour_route_chk CHECK (is_tour_route IN (0, 1))
 
 SELECT RecoverGeometryColumn('edges', 'geometry', 4326, 'MULTIPOINT', 'XY');
 
-DB path -> /data/data/com.spdb.scenicrouteplanner/databases/Routes.db
+DB path -> /sdcard/SRP/databases/Routes.db

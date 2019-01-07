@@ -7,9 +7,11 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
+import com.spdb.scenicrouteplanner.lib.PathsClassLib;
 import com.spdb.scenicrouteplanner.model.Edge;
 import com.spdb.scenicrouteplanner.model.Node;
 import com.spdb.scenicrouteplanner.model.Way;
+import com.spdb.scenicrouteplanner.utils.FileUtils;
 
 import static com.spdb.scenicrouteplanner.database.RoutesDbContract.*;
 import static com.spdb.scenicrouteplanner.lib.OSM.OSMClassLib.*;
@@ -27,14 +29,26 @@ public class RoutesDbProvider
     // ==============================
     // Private fields
     // ==============================
-    private RoutesDbHelper dbHelper;
+    private static final String DATABASE_NAME = "Routes.db";
+    private static final String DATABASE_PATH = PathsClassLib.DB_DIRECTORY + "/" + DATABASE_NAME;
+
+    //private RoutesDbHelper dbHelper;
+    private SQLiteDatabase db;
 
     // ==============================
     // Constructors
     // ==============================
-    public RoutesDbProvider(Context context)
+    public RoutesDbProvider()
     {
-        dbHelper = new RoutesDbHelper(context);
+        //dbHelper = new RoutesDbHelper(context);
+        FileUtils.createDir(PathsClassLib.DB_DIRECTORY);
+        if (FileUtils.fileExists(DATABASE_PATH))
+            db = SQLiteDatabase.openDatabase(DATABASE_PATH, null, SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+    }
+
+    public boolean isDbAvailable()
+    {
+        return FileUtils.fileExists(DATABASE_PATH) && db != null;
     }
 
     // ==============================
@@ -44,7 +58,7 @@ public class RoutesDbProvider
     {
         try
         {
-            SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
+            //SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
 
             ContentValues values = new ContentValues();
             values.put(NodesTable._ID, n.getId());
@@ -69,7 +83,7 @@ public class RoutesDbProvider
     {
         try
         {
-            SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
+            //SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
 
             Node startNode = e.getStartNode();
             GeoCoords startNodeGeoCoords = startNode.getGeoCoords();
@@ -106,7 +120,7 @@ public class RoutesDbProvider
     {
         try
         {
-            SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
+            //SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
 
             ContentValues values = new ContentValues();
             values.put(WaysTable._ID, w.getId());
@@ -126,6 +140,28 @@ public class RoutesDbProvider
     {
         for (Way w : ways)
             addWay(w);
+    }
+
+    // ==============================
+    // Updating data methods
+    // ==============================
+
+    public void setTour(List<Edge> edges)
+    {
+        db.beginTransaction();
+        for (Edge e: edges)
+        {
+            ContentValues values = new ContentValues();
+            values.put(EdgesTable.IS_TOUR_ROUTE_COL_NAME, e.isTourRoute());
+
+            updateEdgeById(e.getId(), values);
+        }
+        db.endTransaction();
+    }
+
+    public void updateEdgeById(long id, ContentValues values)
+    {
+        db.update(EdgesTable.TABLE_NAME, values, "_id = " + id,null);
     }
 
     // ==============================
@@ -158,7 +194,7 @@ public class RoutesDbProvider
     {
         try
         {
-            SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
+            //SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
 
             return db.delete(tableName, null, null);
         }
@@ -175,7 +211,7 @@ public class RoutesDbProvider
 
     public List<Edge> getAllEdges()
     {
-        SQLiteDatabase db;
+        /*SQLiteDatabase db;
         try
         {
             db = new GetDatabaseTask().execute(false).get();
@@ -184,7 +220,7 @@ public class RoutesDbProvider
         {
             Log.d("ROUTES_DB_PROVIDER", e.getMessage());
             return null;
-        }
+        }*/
 
         List<Edge> res = new ArrayList<>();
         HashMap<Long, Node> nodes = new HashMap<>();
@@ -284,7 +320,7 @@ public class RoutesDbProvider
         if (coords == null)
             throw new IllegalArgumentException("RoutesDbProvider.GetClosestNodeId - null coords argument");
 
-        SQLiteDatabase db;
+        /*SQLiteDatabase db;
         try
         {
             db = new GetDatabaseTask().execute(false).get();
@@ -293,7 +329,7 @@ public class RoutesDbProvider
         {
             Log.d("ROUTES_DB_PROVIDER", e.getMessage());
             return -1;
-        }
+        }*/
 
         double latCoord = coords.getLatitude();
         double longCoord = coords.getLongitude();
@@ -327,6 +363,11 @@ public class RoutesDbProvider
         return -1;
     }
 
+    public void finalize()
+    {
+        db.close();
+    }
+
     // ==============================
     // Private methods / tasks
     // ==============================
@@ -357,7 +398,7 @@ public class RoutesDbProvider
 
     }
 
-    class GetDatabaseTask extends AsyncTask<Boolean, Integer, SQLiteDatabase>
+    /*class GetDatabaseTask extends AsyncTask<Boolean, Integer, SQLiteDatabase>
     {
         @Override
         protected SQLiteDatabase doInBackground(Boolean... isGettingWritable)
@@ -371,5 +412,5 @@ public class RoutesDbProvider
             }
             return null;
         }
-    }
+    }*/
 }

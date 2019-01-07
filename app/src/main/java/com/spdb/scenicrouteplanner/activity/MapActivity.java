@@ -46,6 +46,7 @@ public class MapActivity extends Fragment
         super();
 
         mapService = new MapService();
+        dbProvider = new RoutesDbProvider();
     }
 
     // ==============================
@@ -55,8 +56,6 @@ public class MapActivity extends Fragment
     public void onCreate(Bundle savedInstance)
     {
         super.onCreate(savedInstance);
-
-        dbProvider = new RoutesDbProvider(getContext());
     }
 
     @Nullable

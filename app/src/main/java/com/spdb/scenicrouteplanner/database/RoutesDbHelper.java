@@ -9,6 +9,7 @@ import static com.spdb.scenicrouteplanner.database.RoutesDbContract.*;
 import org.spatialite.database.SQLiteDatabase;
 import org.spatialite.database.SQLiteOpenHelper;
 
+// Na razie nieużywane.
 class RoutesDbHelper extends SQLiteOpenHelper
 {
     // ==============================

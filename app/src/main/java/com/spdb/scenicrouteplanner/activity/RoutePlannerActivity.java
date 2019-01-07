@@ -74,51 +74,45 @@ public class RoutePlannerActivity extends Fragment {
                 String dest = destinationEditText.getText().toString();
                 String scenicRouteMin = scenicRouteMinEditText.getText().toString();
 
-                if(!(start.isEmpty() || dest.isEmpty() || scenicRouteMin.isEmpty()))
-                {
-                    MapActivity.getMapService().removeAllEdges();
-                    MapActivity.getMapService().removeStartEndNode();
+                RoutesDbProvider dbProvider = MapActivity.getDbProvider();
 
-                    RoutesDbProvider dbProvider = MapActivity.getDbProvider();
-                    dbProvider.clearDb();
+                if (dbProvider.isDbAvailable()) {
+                    if (!(start.isEmpty() || dest.isEmpty() || scenicRouteMin.isEmpty())) {
+                        MapActivity.getMapService().removeAllEdges();
+                        MapActivity.getMapService().removeStartEndNode();
 
-                    GeoCoords startCoords = osmService.getPlaceCoords(start);
-                    GeoCoords destCoords = osmService.getPlaceCoords(dest);
-                    Double latDiff = Math.abs(startCoords.getLatitude() - destCoords.getLatitude());
-                    Double lonDiff = Math.abs(startCoords.getLongitude() - destCoords.getLongitude());
-                    if((latDiff > 0.15) || (lonDiff > 0.15))
-                    {
-                        //TODO:Alert
-                    }
-                    else
-                    {
-                        osmService.getMapExtent(startCoords, destCoords);
-                        try
-                        {
-                            OSMParser parser = new OSMParser();
-                            Model model = parser.parseOSMFile(Environment.getExternalStorageDirectory() + "/SRP/maps/osm");
+                        dbProvider.clearDb();
 
-                            dbProvider.addWays(model.getWaysList());
-                            dbProvider.addEdges(model.getEdgesList());
-                            model.setEdges(dbProvider.getAllEdges());
+                        GeoCoords startCoords = osmService.getPlaceCoords(start);
+                        GeoCoords destCoords = osmService.getPlaceCoords(dest);
+                        Double latDiff = Math.abs(startCoords.getLatitude() - destCoords.getLatitude());
+                        Double lonDiff = Math.abs(startCoords.getLongitude() - destCoords.getLongitude());
+                        if ((latDiff > 0.15) || (lonDiff > 0.15)) {
+                            //TODO:Alert
+                        } else {
+                            osmService.getMapExtent(startCoords, destCoords);
+                            try {
+                                OSMParser parser = new OSMParser();
+                                Model model = parser.parseOSMFile(Environment.getExternalStorageDirectory() + "/SRP/maps/osm");
 
-                            long startNodeId = dbProvider.getClosestNodeId(startCoords);
-                            long endNodeId = dbProvider.getClosestNodeId(destCoords);
+                                dbProvider.addWays(model.getWaysList());
+                                dbProvider.addEdges(model.getEdgesList());
+                                model.setEdges(dbProvider.getAllEdges());
 
-                            MapActivity.getMapService().addEdges(model.getEdgesList());
-                            MapActivity.getMapService().setStartMapExtent(startCoords, destCoords);
-                            MapActivity.getMapService().setStartNode(model.getNodeById(startNodeId));
-                            MapActivity.getMapService().setEndNode(model.getNodeById(endNodeId));
+                                long startNodeId = dbProvider.getClosestNodeId(startCoords);
+                                long endNodeId = dbProvider.getClosestNodeId(destCoords);
 
-                        }
-                        catch (Exception e)
-                        {
-                            //TODO:You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm
-                            e.printStackTrace();
-                        }
-                        finally
-                        {
-                            getFragmentManager().popBackStack();
+                                MapActivity.getMapService().addEdges(model.getEdgesList());
+                                MapActivity.getMapService().setStartMapExtent(startCoords, destCoords);
+                                MapActivity.getMapService().setStartNode(model.getNodeById(startNodeId));
+                                MapActivity.getMapService().setEndNode(model.getNodeById(endNodeId));
+
+                            } catch (Exception e) {
+                                //TODO:You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm
+                                e.printStackTrace();
+                            } finally {
+                                getFragmentManager().popBackStack();
+                            }
                         }
                     }
                 }
