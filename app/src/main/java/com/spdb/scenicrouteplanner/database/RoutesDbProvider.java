@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
+import com.spdb.scenicrouteplanner.lib.OSM.OSMClassLib;
 import com.spdb.scenicrouteplanner.lib.PathsClassLib;
 import com.spdb.scenicrouteplanner.model.Edge;
 import com.spdb.scenicrouteplanner.model.Node;
@@ -349,21 +350,26 @@ public class RoutesDbProvider
 
         Cursor cursor = db.rawQuery(SQL_NEAREST_POINT, null);
 
-        if(cursor.moveToFirst())
+        double len1 = -1.0f, len2 = -1.0f;
+        long startNodeId = -1, endNodeId = -1;
+        if (cursor.moveToFirst())
         {
-            double len1 = cursor.getDouble(cursor.getColumnIndexOrThrow(START_NODE_LEN_COL_NAME));
-            long startNodeId = cursor.getLong(cursor.getColumnIndexOrThrow(EdgesTable.START_NODE_ID_COL_NAME));
-            double len2 = cursor.getDouble(cursor.getColumnIndexOrThrow(END_NODE_LEN_COL_NAME));
-            long endNodeId = cursor.getLong(cursor.getColumnIndexOrThrow(EdgesTable.END_NODE_ID_COL_NAME));
+            len1 = cursor.getDouble(cursor.getColumnIndexOrThrow(START_NODE_LEN_COL_NAME));
+            startNodeId = cursor.getLong(cursor.getColumnIndexOrThrow(EdgesTable.START_NODE_ID_COL_NAME));
+            len2 = cursor.getDouble(cursor.getColumnIndexOrThrow(END_NODE_LEN_COL_NAME));
+            endNodeId = cursor.getLong(cursor.getColumnIndexOrThrow(EdgesTable.END_NODE_ID_COL_NAME));
+        }
+        cursor.close();
 
-            cursor.close();
-
+        if (len1 < 0.0f)
+            return -1;
+        else
+        {
             if (len1 < len2)
                 return startNodeId;
             else
                 return endNodeId;
         }
-        return -1;
     }
 
     public double getDistance(Node n1, Node n2) throws IllegalArgumentException
@@ -392,20 +398,22 @@ public class RoutesDbProvider
         double long2 = geoCoords2.getLongitude();
 
         final String SQL_LENGTH = String.format(Locale.US,
-                "SELECT Distance(GeomFromText('Point(%f %f)'), GeomFromText('Point(%f %f)')) AS %s;",
-                long1, lat1, long2, lat2, LENGTH_COL_NAME);
+                "SELECT Distance(Transform(GeomFromText('Point(%f %f)', %d), %d), " +
+                "Transform(GeomFromText('Point(%f %f)', %d), %d)) AS %s;",
+                long1, lat1, OSMClassLib.OSM_SRID, OSMClassLib.ETRS89_SRID,
+                long2, lat2, OSMClassLib.OSM_SRID, OSMClassLib.ETRS89_SRID,
+                LENGTH_COL_NAME);
 
         Cursor cursor = db.rawQuery(SQL_LENGTH, null);
 
-        if(cursor.moveToFirst())
+        double len = -1.0f;
+        if (cursor.moveToFirst())
         {
-            double len = cursor.getDouble(cursor.getColumnIndex(LENGTH_COL_NAME));
-
-            cursor.close();
-
-            return len;
+            len = cursor.getDouble(cursor.getColumnIndex(LENGTH_COL_NAME));
         }
-        return -1;
+        cursor.close();
+
+        return len;
     }
 
     public void finalize()
