@@ -146,7 +146,7 @@ public class MapService implements IMapService
                         add(endPoint);
                     }
                 });
-                /*
+
                 if (e.isTourRoute()) {
                     if (e.getWayInfo().isScenicRoute())
                         polyline.setColor(EdgeColor.SCENIC_TOUR_ROUTE_COLOR);
@@ -158,8 +158,7 @@ public class MapService implements IMapService
                     else
                         polyline.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
                 }
-                */
-                polyline.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
+
                 polylines.add(polyline);
             }
 

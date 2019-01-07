@@ -54,14 +54,6 @@ public class Model {
         ways.add(w);
     }
 
-    public void setTourRoute(List<Edge> tourRoute){
-        for(Edge e: edges){
-            if(tourRoute.contains(e)){
-                e.setTourRoute(true);
-            }
-        }
-    }
-
     public void printAll() {
         printNodes();
         printEdges();
