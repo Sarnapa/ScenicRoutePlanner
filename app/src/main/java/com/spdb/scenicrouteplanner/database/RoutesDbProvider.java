@@ -309,6 +309,7 @@ public class RoutesDbProvider
             startNode.getEdges().add(e);
 
             res.add(e);
+            wayCursor.close();
         }
         edgesCursor.close();
 

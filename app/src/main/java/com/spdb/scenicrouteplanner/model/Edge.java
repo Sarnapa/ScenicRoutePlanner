@@ -30,6 +30,13 @@ public class Edge {
         this.isTourRoute = isTourRoute;
     }
 
+    public Edge(long id, Node startNode, Node endNode, boolean isTourRoute) {
+        this.id = id;
+        this.startNode = startNode;
+        this.endNode = endNode;
+        this.isTourRoute = isTourRoute;
+    }
+
     public Edge(long id, Node startNode, Node endNode) {
         this.id = id;
         this.startNode = startNode;

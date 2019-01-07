@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,9 +14,14 @@ import android.widget.ImageButton;
 import com.spdb.scenicrouteplanner.R;
 import com.spdb.scenicrouteplanner.database.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
+import com.spdb.scenicrouteplanner.lib.PathsClassLib;
+import com.spdb.scenicrouteplanner.model.Edge;
 import com.spdb.scenicrouteplanner.model.Model;
 import com.spdb.scenicrouteplanner.service.OSMService;
+import com.spdb.scenicrouteplanner.utils.AStar;
 import com.spdb.scenicrouteplanner.utils.OSMParser;
+
+import java.util.List;
 
 public class RoutePlannerActivity extends Fragment {
     // ==============================
@@ -85,36 +91,55 @@ public class RoutePlannerActivity extends Fragment {
 
                         GeoCoords startCoords = osmService.getPlaceCoords(start);
                         GeoCoords destCoords = osmService.getPlaceCoords(dest);
-                        Double latDiff = Math.abs(startCoords.getLatitude() - destCoords.getLatitude());
-                        Double lonDiff = Math.abs(startCoords.getLongitude() - destCoords.getLongitude());
-                        if ((latDiff > 0.15) || (lonDiff > 0.15)) {
-                            //TODO:Alert
-                        } else {
+                        Log.d("ROUTE_PLANNER", "COORDS READY");
+
+                        try {
                             osmService.getMapExtent(startCoords, destCoords);
-                            try {
-                                OSMParser parser = new OSMParser();
-                                Model model = parser.parseOSMFile(Environment.getExternalStorageDirectory() + "/SRP/maps/osm");
+                            Log.d("ROUTE_PLANNER", "MAPS DOWNLOADED");
 
-                                dbProvider.addWays(model.getWaysList());
-                                dbProvider.addEdges(model.getEdgesList());
-                                model.setEdges(dbProvider.getAllEdges());
+                            OSMParser parser = new OSMParser();
+                            Model model = parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
+                            Log.d("ROUTE_PLANNER", "FILES PARSED");
 
-                                long startNodeId = dbProvider.getClosestNodeId(startCoords);
-                                long endNodeId = dbProvider.getClosestNodeId(destCoords);
+                            dbProvider.addWays(model.getWaysList());
+                            dbProvider.addEdges(model.getEdgesList());
+                            model.setEdges(dbProvider.getAllEdges());
+                            Log.d("ROUTE_PLANNER", "DATABASE UPDATED");
 
-                                MapActivity.getMapService().addEdges(model.getEdgesList());
+                            long startNodeId = dbProvider.getClosestNodeId(startCoords);
+                            long endNodeId = dbProvider.getClosestNodeId(destCoords);
+                            Log.d("ROUTE_PLANNER", "START NODE:" + startNodeId);
+                            Log.d("ROUTE_PLANNER", "END NODE:" + endNodeId);
+
+                            AStar shortestPath = new AStar();
+                            List<Edge> route = shortestPath.aStar(model, model.getNodeById(startNodeId), model.getNodeById(endNodeId));
+                            if(route != null) {
+                                //model.setTourRoute(route);
+
+                                Log.d("ROUTE_PLANNER", "SHORTEST PATH FOUND WITH ASTAR");
+
+                                //MapActivity.getMapService().addEdges(model.getEdgesList());
+                                MapActivity.getMapService().addEdges(route);
                                 MapActivity.getMapService().setStartMapExtent(startCoords, destCoords);
                                 MapActivity.getMapService().setStartNode(model.getNodeById(startNodeId));
                                 MapActivity.getMapService().setEndNode(model.getNodeById(endNodeId));
-
-                            } catch (Exception e) {
-                                //TODO:You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm
-                                e.printStackTrace();
-                            } finally {
-                                getFragmentManager().popBackStack();
+                            } else {
+                                Log.d("ROUTE_PLANNER", "SHORTEST PATH NOT FOUND");
                             }
+
+
+                        } catch(IllegalArgumentException e){
+                            //TODO:Invalid coords or map too big!
+                            Log.e("ROUTE_PLANNER", "INVALID COORDS OR MAP TOO BIG");
+                        } catch (Exception e) {
+                            //TODO:You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm
+                            e.printStackTrace();
+                        } finally {
+                            getFragmentManager().popBackStack();
                         }
                     }
+                } else {
+                    Log.d("ROUTE_PLANNER", "DATABASE NOT AVAILABLE");
                 }
             }
         });

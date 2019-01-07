@@ -60,6 +60,22 @@ public class OSMService implements IOSMService
         double minLatitude = Double.min(v1.getLatitude(), v2.getLatitude());
         double maxLatitude = Double.max(v1.getLatitude(), v2.getLatitude());
 
+        double latDiff = maxLatitude-minLatitude;
+        double lonDiff = maxLongitude-minLongitude;
+
+        double multiplier = 10;
+        minLatitude = minLatitude - multiplier * latDiff;
+        maxLatitude = maxLatitude + multiplier * latDiff;
+        minLongitude = minLongitude - multiplier * lonDiff;
+        maxLongitude = maxLongitude + multiplier * lonDiff;
+
+        latDiff = maxLatitude-minLatitude;
+        lonDiff = maxLongitude-minLongitude;
+
+        if ((latDiff > 0.15) || (lonDiff > 0.15)) {
+            throw new IllegalArgumentException("OSMService.getMapExtent - Area too big!");
+        }
+
         String getMapTaskParam = String.format(Locale.US, "*[bbox=%f,%f,%f,%f]", minLongitude, minLatitude,
                 maxLongitude, maxLatitude);
 

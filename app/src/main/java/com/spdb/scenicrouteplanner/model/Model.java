@@ -37,12 +37,29 @@ public class Model {
         return nodes.get(id);
     }
 
+    public Edge getEdgeById(Long id) {
+        for(Edge e: edges){
+            if(e.getId() == id){
+                return e;
+            }
+        }
+        return null;
+    }
+
     public void addEdge(Edge e) {
         edges.add(e);
     }
 
     public void addWay(Way w) {
         ways.add(w);
+    }
+
+    public void setTourRoute(List<Edge> tourRoute){
+        for(Edge e: edges){
+            if(tourRoute.contains(e)){
+                e.setTourRoute(true);
+            }
+        }
     }
 
     public void printAll() {
