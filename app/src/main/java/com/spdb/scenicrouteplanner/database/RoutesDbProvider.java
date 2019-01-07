@@ -319,7 +319,7 @@ public class RoutesDbProvider
     public long getClosestNodeId(GeoCoords coords) throws IllegalArgumentException
     {
         if (coords == null)
-            throw new IllegalArgumentException("RoutesDbProvider.GetClosestNodeId - null coords argument");
+            throw new IllegalArgumentException("RoutesDbProvider.getClosestNodeId - null coords argument");
 
         /*SQLiteDatabase db;
         try
@@ -356,10 +356,54 @@ public class RoutesDbProvider
             double len2 = cursor.getDouble(cursor.getColumnIndexOrThrow(END_NODE_LEN_COL_NAME));
             long endNodeId = cursor.getLong(cursor.getColumnIndexOrThrow(EdgesTable.END_NODE_ID_COL_NAME));
 
+            cursor.close();
+
             if (len1 < len2)
                 return startNodeId;
             else
                 return endNodeId;
+        }
+        return -1;
+    }
+
+    public double getDistance(Node n1, Node n2) throws IllegalArgumentException
+    {
+        if (n1 == null)
+            throw new IllegalArgumentException("RoutesDbProvider.getDistance - null first node argument");
+
+        if (n2 == null)
+            throw new IllegalArgumentException("RoutesDbProvider.getDistance - null second node argument");
+
+        return getDistance(n1.getGeoCoords(), n2.getGeoCoords());
+    }
+
+    public double getDistance(GeoCoords geoCoords1, GeoCoords geoCoords2) throws IllegalArgumentException
+    {
+        if (geoCoords1 == null)
+            throw new IllegalArgumentException("RoutesDbProvider.getDistance - null first node argument");
+
+        if (geoCoords2 == null)
+            throw new IllegalArgumentException("RoutesDbProvider.getDistance - null second node argument");
+
+        double lat1 = geoCoords1.getLatitude();
+        double long1 = geoCoords1.getLongitude();
+
+        double lat2 = geoCoords2.getLatitude();
+        double long2 = geoCoords2.getLongitude();
+
+        final String SQL_LENGTH = String.format(Locale.US,
+                "SELECT Distance(GeomFromText('Point(%f %f)'), GeomFromText('Point(%f %f)')) AS %s;",
+                long1, lat1, long2, lat2, LENGTH_COL_NAME);
+
+        Cursor cursor = db.rawQuery(SQL_LENGTH, null);
+
+        if(cursor.moveToFirst())
+        {
+            double len = cursor.getDouble(cursor.getColumnIndex(LENGTH_COL_NAME));
+
+            cursor.close();
+
+            return len;
         }
         return -1;
     }
