@@ -111,7 +111,7 @@ public class RoutePlannerActivity extends Fragment {
                             Log.d("ROUTE_PLANNER", "START NODE:" + startNodeId);
                             Log.d("ROUTE_PLANNER", "END NODE:" + endNodeId);
 
-                            AStar shortestPath = new AStar();
+                            AStar shortestPath = new AStar(dbProvider);
                             List<Edge> route = shortestPath.aStar(model, model.getNodeById(startNodeId), model.getNodeById(endNodeId));
                             if(route != null) {
                                 //model.setTourRoute(route);

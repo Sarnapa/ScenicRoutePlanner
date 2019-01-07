@@ -63,7 +63,7 @@ public class OSMService implements IOSMService
         double latDiff = maxLatitude-minLatitude;
         double lonDiff = maxLongitude-minLongitude;
 
-        double multiplier = 10;
+        double multiplier = 1.0;
         minLatitude = minLatitude - multiplier * latDiff;
         maxLatitude = maxLatitude + multiplier * latDiff;
         minLongitude = minLongitude - multiplier * lonDiff;
@@ -72,7 +72,7 @@ public class OSMService implements IOSMService
         latDiff = maxLatitude-minLatitude;
         lonDiff = maxLongitude-minLongitude;
 
-        if ((latDiff > 0.15) || (lonDiff > 0.15)) {
+        if ((latDiff > 0.25) || (lonDiff > 0.25)) {
             throw new IllegalArgumentException("OSMService.getMapExtent - Area too big!");
         }
 

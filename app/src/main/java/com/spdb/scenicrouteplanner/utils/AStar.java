@@ -2,6 +2,7 @@ package com.spdb.scenicrouteplanner.utils;
 
 import android.util.Log;
 
+import com.spdb.scenicrouteplanner.database.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.model.*;
 
 import java.util.ArrayList;
@@ -11,6 +12,12 @@ import java.util.List;
 import java.util.Map;
 
 public class AStar {
+
+    private RoutesDbProvider dbProvider;
+
+    public AStar(RoutesDbProvider dbProvider){
+        this.dbProvider = dbProvider;
+    }
 
     public List<Edge> aStar(Model model, Node start, Node dest) {
         int size = model.getNodes().size();
@@ -97,7 +104,7 @@ public class AStar {
 
     //Heuristic
     private double estimatedDistToDest(Node current, Node dest) {
-        return Double.MAX_VALUE;
+        return dbProvider.getDistance(current, dest);
     }
 
     private List<Edge> reconstructPath(Model model, Map<Node, Node> cameFrom, Node current) {
