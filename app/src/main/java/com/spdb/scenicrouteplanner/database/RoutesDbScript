@@ -16,7 +16,7 @@ way_id INTEGER,
 start_node_id INTEGER,
 end_node_id INTEGER,
 is_tour_route INTEGER,
-geometry,
+geometry UNIQUE,
 CONSTRAINT way_id_fk FOREIGN KEY (way_id) REFERENCES ways (_id),
 CONSTRAINT is_tour_route_chk CHECK (is_tour_route IN (0, 1))
 );

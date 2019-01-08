@@ -101,8 +101,12 @@ public class RoutePlannerActivity extends Fragment {
                             Model model = parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
                             Log.d("ROUTE_PLANNER", "FILES PARSED");
 
+                            Log.d("ROUTE_PLANNER", "ADDING WAYS STARTED");
                             dbProvider.addWays(model.getWaysList());
+                            Log.d("ROUTE_PLANNER", "ADDING WAYS ENDED");
+                            Log.d("ROUTE_PLANNER", "ADDING EDGES STARTED");
                             dbProvider.addEdges(model.getEdgesList());
+                            Log.d("ROUTE_PLANNER", "ADDING EDGED ENDED");
                             model.setEdges(dbProvider.getAllEdges());
                             Log.d("ROUTE_PLANNER", "DATABASE UPDATED");
 

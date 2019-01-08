@@ -86,7 +86,7 @@ public class RoutesDbProvider
         {
             //SQLiteDatabase db = new GetDatabaseTask().execute(true).get();
 
-            Node startNode = e.getStartNode();
+            Node startNode = e.getStartNode()   ;
             GeoCoords startNodeGeoCoords = startNode.getGeoCoords();
             Node endNode = e.getEndNode();
             GeoCoords endNodeGeoCoords = endNode.getGeoCoords();
@@ -98,12 +98,15 @@ public class RoutesDbProvider
             values.put(EdgesTable.END_NODE_ID_COL_NAME, endNode.getId());
             values.put(EdgesTable.IS_TOUR_ROUTE_COL_NAME, e.isTourRoute() ? 1 : 0);
             // W 4326 najpierw long, później lat
-            values.put(EdgesTable.GEOMETRY_COL_NAME, String.format(Locale.US,"%s(%f %f, %f %f)",
+            values.put(EdgesTable.GEOMETRY_COL_NAME, String.format(Locale.US, "%s(%f %f, %f %f)",
                     GeometryType.MULTIPOINT.name(),
                     startNodeGeoCoords.getLongitude(), startNodeGeoCoords.getLatitude(),
                     endNodeGeoCoords.getLongitude(), endNodeGeoCoords.getLatitude()));
 
             db.insert(EdgesTable.TABLE_NAME, null, values);
+            //db.execSQL("INSERT INTO inserts_1 (val) VALUES " +valuesBuilder.toString(),
+            //        values
+            //);
         }
         catch (Exception ex)
         {
@@ -113,8 +116,36 @@ public class RoutesDbProvider
 
     public void addEdges(List<Edge> edges)
     {
+        HashMap<Long, List<Long>> nodesHashMap = new HashMap<>();
+
+        db.beginTransaction();
         for (Edge e : edges)
+        {
+            Long startNodeId = e.getStartNode().getId();
+            Long endNodeId = e.getEndNode().getId();
+            if (nodesHashMap.containsKey(startNodeId))
+            {
+                List<Long> destNodes = nodesHashMap.get(startNodeId);
+                if (destNodes.contains(endNodeId))
+                {
+                    Log.d("ROUTES_DB_PROVIDER",
+                            String.format("RoutesDbProvider.addEdge - duplicated edge(id: %d, startNode: %d, endNode: %d).",
+                            e.getId(), startNodeId, endNodeId));
+                    continue;
+                }
+                else
+                    destNodes.add(endNodeId);
+            }
+            else
+            {
+                ArrayList newNodesList = new ArrayList<Long>();
+                newNodesList.add(endNodeId);
+                nodesHashMap.put(startNodeId, newNodesList);
+            }
             addEdge(e);
+        }
+        db.setTransactionSuccessful();
+        db.endTransaction();
     }
 
     public void addWay(Way w)
@@ -139,8 +170,11 @@ public class RoutesDbProvider
 
     public void addWays(List<Way> ways)
     {
+        db.beginTransaction();
         for (Way w : ways)
             addWay(w);
+        db.setTransactionSuccessful();
+        db.endTransaction();
     }
 
     // ==============================
@@ -157,6 +191,7 @@ public class RoutesDbProvider
 
             updateEdgeById(e.getId(), values);
         }
+        db.setTransactionSuccessful();
         db.endTransaction();
     }
 
