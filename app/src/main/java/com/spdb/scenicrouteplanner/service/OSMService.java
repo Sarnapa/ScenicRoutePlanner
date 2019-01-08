@@ -11,23 +11,21 @@ import com.spdb.scenicrouteplanner.service.interfaces.IOSMService;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
-public class OSMService implements IOSMService
-{
+public class OSMService implements IOSMService {
+    private static final double MAX_LAT_DIFF = 0.25;
+    private static final double MAX_LON_DIFF = 0.25;
+
     // ==============================
     // Override IOSMService
     // ==============================
     @Override
-    public Place getPlace(String phrase) throws IllegalArgumentException
-    {
+    public Place getPlace(String phrase) throws IllegalArgumentException {
         if (phrase == null || phrase.isEmpty())
             throw new IllegalArgumentException("OSMService.getPlace - empty phrase argument");
-        try
-        {
+        try {
             GetPlaceTask getPlaceTask = new GetPlaceTask();
             return getPlaceTask.execute(phrase).get();
-        }
-        catch (InterruptedException | ExecutionException e)
-        {
+        } catch (InterruptedException | ExecutionException e) {
             Log.d("OSM_SERVICE", e.getMessage());
             e.printStackTrace();
             return null;
@@ -35,8 +33,7 @@ public class OSMService implements IOSMService
     }
 
     @Override
-    public GeoCoords getPlaceCoords(String phrase) throws IllegalArgumentException
-    {
+    public GeoCoords getPlaceCoords(String phrase) throws IllegalArgumentException {
         if (phrase == null || phrase.isEmpty())
             throw new IllegalArgumentException("OSMService.getPlaceCoords - empty phrase argument");
 
@@ -47,9 +44,9 @@ public class OSMService implements IOSMService
             return null;
     }
 
+
     @Override
-    public void getMapExtent(GeoCoords v1, GeoCoords v2) throws IllegalArgumentException
-    {
+    public void getMapExtent(GeoCoords v1, GeoCoords v2, double multiplier) throws IllegalArgumentException {
         if (v1 == null)
             throw new IllegalArgumentException("OSMService.GetMapExtent - null v1 argument");
         if (v2 == null)
@@ -60,32 +57,29 @@ public class OSMService implements IOSMService
         double minLatitude = Double.min(v1.getLatitude(), v2.getLatitude());
         double maxLatitude = Double.max(v1.getLatitude(), v2.getLatitude());
 
-        double latDiff = maxLatitude-minLatitude;
-        double lonDiff = maxLongitude-minLongitude;
+        double latDiff = maxLatitude - minLatitude;
+        double lonDiff = maxLongitude - minLongitude;
 
-        double multiplier = 1.0;
+        multiplier = 1.0;
         minLatitude = minLatitude - multiplier * latDiff;
         maxLatitude = maxLatitude + multiplier * latDiff;
         minLongitude = minLongitude - multiplier * lonDiff;
         maxLongitude = maxLongitude + multiplier * lonDiff;
 
-        latDiff = maxLatitude-minLatitude;
-        lonDiff = maxLongitude-minLongitude;
+        latDiff = maxLatitude - minLatitude;
+        lonDiff = maxLongitude - minLongitude;
 
-        if ((latDiff > 0.25) || (lonDiff > 0.25)) {
+        if ((latDiff > MAX_LAT_DIFF) || (lonDiff > MAX_LON_DIFF)) {
             throw new IllegalArgumentException("OSMService.getMapExtent - Area too big!");
         }
 
         String getMapTaskParam = String.format(Locale.US, "*[bbox=%f,%f,%f,%f]", minLongitude, minLatitude,
                 maxLongitude, maxLatitude);
 
-        try
-        {
+        try {
             GetMapTask getMapTask = new GetMapTask();
             getMapTask.execute(getMapTaskParam).get();
-        }
-        catch (InterruptedException | ExecutionException e)
-        {
+        } catch (InterruptedException | ExecutionException e) {
             Log.d("OSM_SERVICE", e.getMessage());
             e.printStackTrace();
         }

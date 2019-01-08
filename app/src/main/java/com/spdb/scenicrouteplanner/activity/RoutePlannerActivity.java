@@ -21,12 +21,16 @@ import com.spdb.scenicrouteplanner.service.OSMService;
 import com.spdb.scenicrouteplanner.utils.AStar;
 import com.spdb.scenicrouteplanner.utils.OSMParser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class RoutePlannerActivity extends Fragment {
     // ==============================
     // Private fields
     // ==============================
+    private static final double DEFAULT_MULTIPLIER = 1.0;
+    private static final double MULTIPLIER_HOP = 1.0;
+
     private View routePlannerView;
     private EditText startLocationEditText;
     private EditText destinationEditText;
@@ -34,27 +38,23 @@ public class RoutePlannerActivity extends Fragment {
 
     private OSMService osmService;
 
-    public RoutePlannerActivity()
-    {
+    public RoutePlannerActivity() {
         super();
 
         this.osmService = new OSMService();
     }
 
     @Override
-    public void onCreate(Bundle savedInstance)
-    {
+    public void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
     }
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
-    {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         routePlannerView = inflater.inflate(R.layout.activity_route_planner, container, false);
 
-        if (routePlannerView != null)
-        {
+        if (routePlannerView != null) {
             startLocationEditText = routePlannerView.findViewById(R.id.start_location);
             startLocationEditText.setText("Warszawa, Nowowiejska 30");
             destinationEditText = routePlannerView.findViewById(R.id.destination);
@@ -74,8 +74,7 @@ public class RoutePlannerActivity extends Fragment {
 
         findRoutePlannerButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v) {
                 String start = startLocationEditText.getText().toString();
                 String dest = destinationEditText.getText().toString();
                 String scenicRouteMin = scenicRouteMinEditText.getText().toString();
@@ -93,12 +92,14 @@ public class RoutePlannerActivity extends Fragment {
                         GeoCoords destCoords = osmService.getPlaceCoords(dest);
                         Log.d("ROUTE_PLANNER", "COORDS READY");
 
+                        Model model = new Model();
+                        List<Edge> route = new ArrayList<>();
                         try {
-                            osmService.getMapExtent(startCoords, destCoords);
+                            osmService.getMapExtent(startCoords, destCoords, DEFAULT_MULTIPLIER);
                             Log.d("ROUTE_PLANNER", "MAPS DOWNLOADED");
 
                             OSMParser parser = new OSMParser();
-                            Model model = parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
+                            model = parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
                             Log.d("ROUTE_PLANNER", "FILES PARSED");
 
                             Log.d("ROUTE_PLANNER", "ADDING WAYS STARTED");
@@ -116,28 +117,43 @@ public class RoutePlannerActivity extends Fragment {
                             Log.d("ROUTE_PLANNER", "END NODE:" + endNodeId);
 
                             AStar shortestPath = new AStar(dbProvider);
-                            List<Edge> route = shortestPath.aStar(model.getNodeById(startNodeId), model.getNodeById(endNodeId));
+                            route = shortestPath.aStar(model.getNodeById(startNodeId), model.getNodeById(endNodeId));
 
-                            MapActivity.getMapService().addEdges(model.getEdgesList());
                             MapActivity.getMapService().setStartMapExtent(startCoords, destCoords);
                             MapActivity.getMapService().setStartNode(model.getNodeById(startNodeId));
                             MapActivity.getMapService().setEndNode(model.getNodeById(endNodeId));
-                            if(route != null) {
-                                Log.d("ROUTE_PLANNER", "SHORTEST PATH FOUND WITH ASTAR");
 
-                                MapActivity.getMapService().addEdges(route);
-                            } else {
+                            double multiplier = DEFAULT_MULTIPLIER;
+                            while (route == null) {
                                 Log.d("ROUTE_PLANNER", "SHORTEST PATH NOT FOUND");
+                                Log.d("ROUTE_PLANNER", "EXPANDING MAP AREA");
+                                multiplier = multiplier + MULTIPLIER_HOP;
+                                osmService.getMapExtent(startCoords, destCoords, multiplier);
+                                model = parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
+                                Log.d("ROUTE_PLANNER", "FILES PARSED");
+                                Log.d("ROUTE_PLANNER", "ADDING WAYS STARTED");
+                                dbProvider.addWays(model.getWaysList());
+                                Log.d("ROUTE_PLANNER", "ADDING WAYS ENDED");
+                                Log.d("ROUTE_PLANNER", "ADDING EDGES STARTED");
+                                dbProvider.addEdges(model.getEdgesList());
+                                Log.d("ROUTE_PLANNER", "ADDING EDGED ENDED");
+                                model.setEdges(dbProvider.getAllEdges());
+                                Log.d("ROUTE_PLANNER", "DATABASE UPDATED");
+                                route = shortestPath.aStar(model.getNodeById(startNodeId), model.getNodeById(endNodeId));
                             }
 
+                            Log.d("ROUTE_PLANNER", "SHORTEST PATH FOUND WITH ASTAR");
 
-                        } catch(IllegalArgumentException e){
+
+                        } catch (IllegalArgumentException e) {
                             //TODO:Invalid coords or map too big!
                             Log.e("ROUTE_PLANNER", "INVALID COORDS OR MAP TOO BIG");
                         } catch (Exception e) {
                             //TODO:You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm
                             e.printStackTrace();
                         } finally {
+                            MapActivity.getMapService().addEdges(model.getEdgesList());
+                            MapActivity.getMapService().addEdges(route);
                             getFragmentManager().popBackStack();
                         }
                     }

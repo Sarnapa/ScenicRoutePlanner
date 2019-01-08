@@ -15,7 +15,7 @@ public class AStar {
 
     private RoutesDbProvider dbProvider;
 
-    public AStar(RoutesDbProvider dbProvider){
+    public AStar(RoutesDbProvider dbProvider) {
         this.dbProvider = dbProvider;
     }
 
@@ -116,9 +116,9 @@ public class AStar {
             tmp = cameFrom.get(current);
         }
         Collections.reverse(finalPath);
-        for(Edge e:finalPath){
+        for (Edge e : finalPath) {
             e.setTourRoute(true);
-            Log.d("ASTAR", "EDGE:"+e.getId()+" " +e.getStartNode().getId() +" "+e.getEndNode().getId());
+            //Log.d("ASTAR", "EDGE:"+e.getId()+" " +e.getStartNode().getId() +" "+e.getEndNode().getId());
         }
         return finalPath;
     }
