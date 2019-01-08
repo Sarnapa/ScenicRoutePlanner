@@ -124,7 +124,7 @@ public class RoutePlannerActivity extends Fragment {
                             MapActivity.getMapService().setEndNode(model.getNodeById(endNodeId));
 
                             double multiplier = DEFAULT_MULTIPLIER;
-                            while (route == null) {
+                            while (route.isEmpty()) {
                                 Log.d("ROUTE_PLANNER", "SHORTEST PATH NOT FOUND");
                                 Log.d("ROUTE_PLANNER", "EXPANDING MAP AREA");
                                 multiplier = multiplier + MULTIPLIER_HOP;
