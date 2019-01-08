@@ -117,15 +117,15 @@ public class RoutePlannerActivity extends Fragment {
 
                             AStar shortestPath = new AStar(dbProvider);
                             List<Edge> route = shortestPath.aStar(model.getNodeById(startNodeId), model.getNodeById(endNodeId));
-                            if(route != null) {
 
+                            MapActivity.getMapService().addEdges(model.getEdgesList());
+                            MapActivity.getMapService().setStartMapExtent(startCoords, destCoords);
+                            MapActivity.getMapService().setStartNode(model.getNodeById(startNodeId));
+                            MapActivity.getMapService().setEndNode(model.getNodeById(endNodeId));
+                            if(route != null) {
                                 Log.d("ROUTE_PLANNER", "SHORTEST PATH FOUND WITH ASTAR");
 
-                                MapActivity.getMapService().addEdges(model.getEdgesList());
                                 MapActivity.getMapService().addEdges(route);
-                                MapActivity.getMapService().setStartMapExtent(startCoords, destCoords);
-                                MapActivity.getMapService().setStartNode(model.getNodeById(startNodeId));
-                                MapActivity.getMapService().setEndNode(model.getNodeById(endNodeId));
                             } else {
                                 Log.d("ROUTE_PLANNER", "SHORTEST PATH NOT FOUND");
                             }
