@@ -112,8 +112,8 @@ public class RoutePlannerActivity extends Fragment {
                                 osmService.getMapExtent(startCoords, destCoords, DEFAULT_MULTIPLIER);
                                 Log.d("ROUTE_PLANNER", "MAPS DOWNLOADED");
 
-                                OSMParser parser = new OSMParser();
-                                model = parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
+                                OSMParser parser = new OSMParser(dbProvider);
+                                parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
                                 Log.d("ROUTE_PLANNER", "FILES PARSED");
 
                                 /*Log.d("ROUTE_PLANNER", "GENERATING SCENIC ROUTES STARTED");
@@ -151,7 +151,7 @@ public class RoutePlannerActivity extends Fragment {
                                     multiplier = multiplier + MULTIPLIER_HOP;
                                     osmService.getMapExtent(startCoords, destCoords, multiplier);
 
-                                    model = parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
+                                    parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
                                     Log.d("ROUTE_PLANNER", "FILES PARSED");
 
                                     Log.d("ROUTE_PLANNER", "ADDING WAYS STARTED");

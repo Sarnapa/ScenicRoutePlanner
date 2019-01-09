@@ -7,9 +7,11 @@ import com.spdb.scenicrouteplanner.model.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 
 public class AStar {
 
@@ -20,21 +22,37 @@ public class AStar {
     }
 
     public List<Edge> aStar(Node start, Node dest) {
-        List<Node> openSet = new ArrayList<>();
-        List<Node> closedSet = new ArrayList<>();
-        Map<Node, List<Edge>> cameFrom = new HashMap<>();
         //Current best path to node distance
         Map<Node, Double> gScore = new HashMap<>();
         //Estimated distance from start to destination through node
-        Map<Node, Double> fScore = new HashMap<>();
+        final Map<Node, Double> fScore = new HashMap<>();
+
+        Comparator<Node> comparator = new Comparator<Node>() {
+            @Override
+            public int compare(Node o1, Node o2) {
+                if(fScore.get(o1) > fScore.get(o2))
+                    return 1;
+                if(fScore.get(o1) < fScore.get(o2))
+                    return -1;
+                return 0;
+            }
+        };
+
+        //List<Node> openSet = new ArrayList<>();
+        PriorityQueue<Node> openSet = new PriorityQueue<>(100, comparator);
+        List<Node> closedSet = new ArrayList<>();
+        Map<Node, List<Edge>> cameFrom = new HashMap<>();
 
         openSet.add(start);
         gScore.put(start, 0.0);
         fScore.put(start, estimatedDistToDest(start, dest));
         cameFrom.put(start, null);
 
+        Node current;
+
         while (!openSet.isEmpty()) {
-            Node current = getMinFScoreNode(openSet, fScore);
+            //current = getMinFScoreNode(openSet, fScore);
+            current = openSet.poll();
             if (current == dest) {
                 return reconstructPath(cameFrom, current);
             }
