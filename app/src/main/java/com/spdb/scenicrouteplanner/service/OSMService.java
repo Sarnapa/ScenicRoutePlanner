@@ -12,8 +12,8 @@ import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 public class OSMService implements IOSMService {
-    private static final double MAX_LAT_DIFF = 0.25;
-    private static final double MAX_LON_DIFF = 0.25;
+    private static final double MAX_LAT_DIFF = 5.0;
+    private static final double MAX_LON_DIFF = 5.0;
 
     // ==============================
     // Override IOSMService

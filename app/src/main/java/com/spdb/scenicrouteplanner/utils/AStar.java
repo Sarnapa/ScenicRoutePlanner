@@ -20,7 +20,6 @@ public class AStar {
     }
 
     public List<Edge> aStar(Node start, Node dest) {
-        //int size = model.getNodes().size();
         List<Node> openSet = new ArrayList<>();
         List<Node> closedSet = new ArrayList<>();
         Map<Node, List<Edge>> cameFrom = new HashMap<>();

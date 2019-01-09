@@ -2,6 +2,7 @@ package com.spdb.scenicrouteplanner.utils;
 
 import android.util.Log;
 
+import com.spdb.scenicrouteplanner.database.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
 import com.spdb.scenicrouteplanner.lib.OSM.OSMClassLib;
 import com.spdb.scenicrouteplanner.model.Edge;
@@ -18,6 +19,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
+
+import okhttp3.Route;
 
 public class OSMParser {
 
@@ -28,7 +32,22 @@ public class OSMParser {
     private static final String KEY_TAG = "tag";
     private static final String KEY_ND = "nd";
 
-    public Model parseOSMFile(String filePath) throws Exception {
+    private final RoutesDbProvider dbProvider;
+
+    private final int NODES_BUFFER_SIZE = 1000;
+    private final int EDGES_BUFFER_SIZE = 1000;
+    private final int WAYS_BUFFER_SIZE = 1000;
+
+    private List<Node> nodesBuffer = new ArrayList<>(NODES_BUFFER_SIZE);
+    private List<Edge> edgesBuffer = new ArrayList<>(EDGES_BUFFER_SIZE);
+    private List<Way> waysBuffer = new ArrayList<>(WAYS_BUFFER_SIZE);
+
+
+    public OSMParser(RoutesDbProvider dbProvider) {
+        this.dbProvider = dbProvider;
+    }
+
+    public void parseOSMFile(String filePath) throws Exception {
         XmlPullParserFactory parserFactory;
         try {
             parserFactory = XmlPullParserFactory.newInstance();
@@ -36,7 +55,7 @@ public class OSMParser {
             InputStream is = new BufferedInputStream(new FileInputStream(filePath));
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(is, null);
-            return processParsing(parser);
+            processParsing(parser);
         } catch (XmlPullParserException e) {
             //TODO:Unexpected token (position:TEXT You requested to...
             e.printStackTrace();
@@ -45,11 +64,10 @@ public class OSMParser {
             //TODO: FileNotFound
             e.printStackTrace();
         }
-        return null;
     }
 
-    private Model processParsing(XmlPullParser parser) throws IOException, XmlPullParserException {
-        Model model = new Model();
+    private void processParsing(XmlPullParser parser) throws IOException, XmlPullParserException {
+        //Model model = new Model();
         int eventType = parser.nextTag();
         String elemName = parser.getName();
         if (!KEY_OSM.equals(elemName)) {
@@ -58,6 +76,11 @@ public class OSMParser {
         } else {
             eventType = parser.next();
         }
+
+        int nodesNumber = 0;
+        int edgesNumber = 0;
+        int waysNumber = 0;
+
         while (eventType != XmlPullParser.END_DOCUMENT) {
             switch (eventType) {
                 case XmlPullParser.START_TAG:
@@ -67,7 +90,16 @@ public class OSMParser {
                             long id = Long.parseLong(parser.getAttributeValue(null, "id"));
                             double lat = Double.parseDouble(parser.getAttributeValue(null, "lat"));
                             double lon = Double.parseDouble(parser.getAttributeValue(null, "lon"));
-                            model.addNode(new Node(id, new GeoCoords(lat, lon)));
+                            //model.addNode(new Node(id, new GeoCoords(lat, lon)));
+
+                            nodesNumber++;
+                            if (nodesNumber >= NODES_BUFFER_SIZE) {
+                                dbProvider.addNodes(nodesBuffer);
+                                nodesBuffer.clear();
+                                nodesNumber = 1;
+                            }
+                            nodesBuffer.add(new Node(id, new GeoCoords(lat, lon)));
+
                             eventType = parser.next();
                             break;
                         }
@@ -78,26 +110,26 @@ public class OSMParser {
                             String highway = "";
                             int maxSpeed = 0;
                             ArrayList<Edge> tmpEdges = new ArrayList<>();
-                            long nodeId1;
-                            Node node1 = null;
+                            long nodeId1 = 0;
+                            //Node node1 = null;
                             long nodeId2;
-                            Node node2 = null;
+                            //Node node2 = null;
 
                             eventType = parser.nextTag(); //go inside <way>
                             while (KEY_ND.equals(parser.getName())) {
                                 //Log.d("PARSER_TEST", "INSIDE ND");
-                                if (node1 == null) {
+                                if (nodeId1 == 0) {
                                     nodeId1 = Long.parseLong(parser.getAttributeValue(null, "ref"));
                                     //Log.d("PARSER_TEST", "ND REF:" + nodeId1);
-                                    node1 = model.getNodeById(nodeId1);
+                                    //node1 = model.getNodeById(nodeId1);
                                 } else {
                                     nodeId2 = Long.parseLong(parser.getAttributeValue(null, "ref"));
                                     //Log.d("PARSER_TEST", "ND REF:" + nodeId2);
-                                    node2 = model.getNodeById(nodeId2);
-                                    tmpEdges.add(new Edge(Edge.getNextId(), node1, node2));
+                                    //node2 = model.getNodeById(nodeId2);
+                                    tmpEdges.add(new Edge(Edge.getNextId(), nodeId1, nodeId2));
                                     //Log.d("PARSER_TEST", "EDGE INSERTED:" + edgeId);
                                     nodeId1 = nodeId2;
-                                    node1 = node2;
+                                    //node1 = node2;
                                 }
                                 eventType = parser.nextTag(); //temporary
                                 eventType = parser.nextTag();
@@ -117,14 +149,30 @@ public class OSMParser {
                                 try {
                                     OSMClassLib.WayType wayType = OSMClassLib.WayType.valueOf(highway.toUpperCase());
                                     Way newWay = new Way(wayId, wayType, wayType.isCouldBeScenicRoute(), maxSpeed);
-                                    model.addWay(newWay);
+
+                                    waysNumber++;
+                                    if (waysNumber >= WAYS_BUFFER_SIZE) {
+                                        dbProvider.addWays(waysBuffer);
+                                        waysBuffer.clear();
+                                        waysNumber = 1;
+                                    }
+                                    waysBuffer.add(newWay);
+
+                                    //model.addWay(newWay);
 
                                     for (Edge e : tmpEdges) {
-                                        e.setWayInfo(newWay);
-                                        model.addEdge(e);
-                                        e.getStartNode().getEdges().add(e);
-                                        e.getEndNode().getEdges().add(e);
+                                        e.setWayId(wayId);
+                                        //model.addEdge(e);
+                                        //e.getStartNode().getEdges().add(e);
+                                        //e.getEndNode().getEdges().add(e);
                                     }
+                                    edgesNumber += tmpEdges.size();
+                                    if (edgesNumber >= EDGES_BUFFER_SIZE) {
+                                        dbProvider.addEdges(edgesBuffer);
+                                        edgesBuffer.clear();
+                                        edgesNumber = tmpEdges.size();
+                                    }
+                                    edgesBuffer.addAll(tmpEdges);
                                     //Log.d("PARSER_TEST", "WAY INSERTED:" + wayId);
                                 } catch (IllegalArgumentException e) {
                                     //TODO:omit
@@ -144,6 +192,12 @@ public class OSMParser {
                     break;
             }
         }
-        return model;
+
+        if (nodesNumber > 0)
+            dbProvider.addNodes(nodesBuffer);
+        if (edgesNumber > 0)
+            dbProvider.addEdges(edgesBuffer);
+        if (waysNumber > 0)
+            dbProvider.addWays(waysBuffer);
     }
 }

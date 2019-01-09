@@ -10,6 +10,10 @@ public class Edge {
     private double length;
     private boolean isTourRoute;
 
+    private long startNodeId;
+    private long endNodeId;
+    private long wayId;
+
     public Edge() {
     }
 
@@ -41,6 +45,16 @@ public class Edge {
         this.id = id;
         this.startNode = startNode;
         this.endNode = endNode;
+    }
+
+    public Edge(long id, long startNodeId, long endNodeId) {
+        this.id = id;
+        this.startNodeId = startNodeId;
+        this.endNodeId = endNodeId;
+    }
+
+    public void setWayId(long wayId){
+        this.wayId = wayId;
     }
 
     public static long getNextId() {
