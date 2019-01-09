@@ -105,17 +105,17 @@ public class RoutePlannerActivity extends Fragment {
                             MapActivity.getMapService().removeAllEdges();
                             MapActivity.getMapService().removeStartEndNode();
 
-                            dbProvider.clearDb();
+                            //dbProvider.clearDb();
 
                             Model model = new Model();
                             List<Edge> route = new ArrayList<>();
                             try {
-                                osmService.getMapExtent(startCoords, destCoords, DEFAULT_MULTIPLIER);
-                                Log.d("ROUTE_PLANNER", "MAPS DOWNLOADED");
+                                //osmService.getMapExtent(startCoords, destCoords, DEFAULT_MULTIPLIER);
+                                //Log.d("ROUTE_PLANNER", "MAPS DOWNLOADED");
 
-                                OSMParser parser = new OSMParser(dbProvider);
-                                parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
-                                Log.d("ROUTE_PLANNER", "PARSING PROCESS ENDED AND DATABASE UPDATED");
+                                //OSMParser parser = new OSMParser(dbProvider);
+                                //parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/mazowieckie-latest.osm"));
+                                //Log.d("ROUTE_PLANNER", "PARSING PROCESS ENDED AND DATABASE UPDATED");
 
                                 /*Log.d("ROUTE_PLANNER", "GENERATING SCENIC ROUTES STARTED");
                                 ScenicRoutesGenerator scenicRoutesGenerator = new ScenicRoutesGenerator();

@@ -100,23 +100,34 @@ public class RoutesDbProvider
             {
                 Node startNode = getNodeById(e.getStartNodeId());
                 Node endNode = getNodeById(e.getEndNodeId());
+                GeoCoords startNodeGeoCoords = startNode.getGeoCoords();
+                GeoCoords endNodeGeoCoords = endNode.getGeoCoords();
 
-                ContentValues values = new ContentValues();
+               /* ContentValues values = new ContentValues();
                 values.put(EdgesTable._ID, e.getId());
                 values.put(EdgesTable.WAY_ID_COL_NAME, e.getWayId());
                 values.put(EdgesTable.START_NODE_ID_COL_NAME, startNode.getId());
                 values.put(EdgesTable.END_NODE_ID_COL_NAME, endNode.getId());
                 values.put(EdgesTable.IS_TOUR_ROUTE_COL_NAME, e.isTourRoute() ? 1 : 0);
 
-                GeoCoords startNodeGeoCoords = startNode.getGeoCoords();
-                GeoCoords endNodeGeoCoords = endNode.getGeoCoords();
                 // W 4326 najpierw long, później lat
-                values.put(EdgesTable.GEOMETRY_COL_NAME, String.format(Locale.US, "%s(%f %f, %f %f)",
+                values.put(EdgesTable.GEOMETRY_COL_NAME, String.format(Locale.US,
+                        "GeomFromText('%s(%f %f, %f %f)', %d)",
                         GeometryType.MULTIPOINT.name(),
                         startNodeGeoCoords.getLongitude(), startNodeGeoCoords.getLatitude(),
-                        endNodeGeoCoords.getLongitude(), endNodeGeoCoords.getLatitude()));
+                        endNodeGeoCoords.getLongitude(), endNodeGeoCoords.getLatitude(),
+                        OSM_SRID));
 
-                db.insert(EdgesTable.TABLE_NAME, null, values);
+                db.insert(EdgesTable.TABLE_NAME, null, values);*/
+
+                // W 4326 najpierw long, później lat
+                String SQL_INSERT_EDGE = String.format(Locale.US, "INSERT INTO %s VALUES (%d, %d, %d, %d, %d, " +
+                       "GeomFromText('%s(%f %f, %f %f)', %d));",
+                        EdgesTable.TABLE_NAME, e.getId(), e.getWayId(), startNode.getId(), endNode.getId(), e.isTourRoute() ? 1 : 0,
+                        GeometryType.MULTIPOINT.name(), startNodeGeoCoords.getLongitude(), startNodeGeoCoords.getLatitude(),
+                        endNodeGeoCoords.getLongitude(), endNodeGeoCoords.getLatitude(), OSM_SRID);
+
+                db.execSQL(SQL_INSERT_EDGE);
             }
         }
         catch (Exception ex)
@@ -329,7 +340,7 @@ public class RoutesDbProvider
                 EdgesTable.END_NODE_ID_COL_NAME,
                 EdgesTable.IS_TOUR_ROUTE_COL_NAME,
                 //EdgesTable.GEOMETRY_COL_NAME,
-                getLengthSQL(EdgesTable.GEOMETRY_COL_NAME, LENGTH_COL_NAME, OSM_SRID, ETRS89_SRID)
+                getLengthSQL(EdgesTable.GEOMETRY_COL_NAME, LENGTH_COL_NAME, ETRS89_SRID)
         };
 
         Cursor edgesCursor = db.query(EdgesTable.TABLE_NAME,
@@ -412,9 +423,9 @@ public class RoutesDbProvider
         final String END_NODE_LEN_COL_NAME = "len2";
 
         final String SQL_NEAREST_POINT = String.format(Locale.US,
-                "SELECT Min(Distance(GeomFromText(%s), GeomFromText('Point(%f %f)'))), \n" +
-                "%s, Distance(GeometryN(GeomFromText(%s), 1), GeomFromText('Point(%f %f)')) AS %s,\n" +
-                "%s, Distance(GeometryN(GeomFromText(%s), 2), GeomFromText('Point(%f %f)')) AS %s\n" +
+                "SELECT Min(Distance(%s, GeomFromText('Point(%f %f)'))), \n" +
+                "%s, Distance(GeometryN(%s, 1), GeomFromText('Point(%f %f)')) AS %s,\n" +
+                "%s, Distance(GeometryN(%s, 2), GeomFromText('Point(%f %f)')) AS %s\n" +
                 "FROM %s;", EdgesTable.GEOMETRY_COL_NAME, longCoord, latCoord,
                 EdgesTable.START_NODE_ID_COL_NAME, EdgesTable.GEOMETRY_COL_NAME, longCoord, latCoord, START_NODE_LEN_COL_NAME,
                 EdgesTable.END_NODE_ID_COL_NAME, EdgesTable.GEOMETRY_COL_NAME, longCoord, latCoord, END_NODE_LEN_COL_NAME,
@@ -514,12 +525,12 @@ public class RoutesDbProvider
         }
     }
 
-    private static String getLengthSQL(String geomColName, String lengthColName, int srcSrid, int dstSrid)
+    private static String getLengthSQL(String geomColName, String lengthColName, int dstSrid)
     {
         return String.format(Locale.US,
-                "Distance(Transform(GeometryN(GeomFromText(%s, %d), 1), %d), " +
-                "Transform(GeometryN(GeomFromText(%s, %d), 2), %d)) AS %s",
-                geomColName, srcSrid, dstSrid, geomColName, srcSrid, dstSrid, lengthColName);
+                "Distance(Transform(GeometryN(AsText(%s), 1), %d), " +
+                "Transform(GeometryN(AsText(%s), 2), %d)) AS %s",
+                geomColName, dstSrid, geomColName, dstSrid, lengthColName);
 
     }
 
