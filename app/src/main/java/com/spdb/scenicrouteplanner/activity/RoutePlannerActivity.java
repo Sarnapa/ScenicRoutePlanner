@@ -21,6 +21,7 @@ import com.spdb.scenicrouteplanner.lib.GeoCoords;
 import com.spdb.scenicrouteplanner.lib.PathsClassLib;
 import com.spdb.scenicrouteplanner.model.Edge;
 import com.spdb.scenicrouteplanner.model.Model;
+import com.spdb.scenicrouteplanner.model.Node;
 import com.spdb.scenicrouteplanner.service.OSMService;
 import com.spdb.scenicrouteplanner.utils.AStar;
 import com.spdb.scenicrouteplanner.utils.OSMParser;
@@ -112,38 +113,30 @@ public class RoutePlannerActivity extends Fragment {
                                 osmService.getMapExtent(startCoords, destCoords, DEFAULT_MULTIPLIER);
                                 Log.d("ROUTE_PLANNER", "MAPS DOWNLOADED");
 
-                                OSMParser parser = new OSMParser();
-                                model = parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
-                                Log.d("ROUTE_PLANNER", "FILES PARSED");
+                                OSMParser parser = new OSMParser(dbProvider);
+                                parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
+                                Log.d("ROUTE_PLANNER", "PARSING PROCESS ENDED AND DATABASE UPDATED");
 
                                 /*Log.d("ROUTE_PLANNER", "GENERATING SCENIC ROUTES STARTED");
                                 ScenicRoutesGenerator scenicRoutesGenerator = new ScenicRoutesGenerator();
                                 scenicRoutesGenerator.generate(model.getEdgesList());
                                 Log.d("ROUTE_PLANNER", "GENERATING SCENIC ROUTES ENDED");*/
 
-                                Log.d("ROUTE_PLANNER", "ADDING WAYS STARTED");
-                                dbProvider.addWays(model.getWaysList());
-                                Log.d("ROUTE_PLANNER", "ADDING WAYS ENDED");
-                                Log.d("ROUTE_PLANNER", "ADDING EDGES STARTED");
-                                dbProvider.addEdges(model.getEdgesList());
-                                Log.d("ROUTE_PLANNER", "ADDING EDGED ENDED");
-
-                                model.setEdges(dbProvider.getAllEdges());
-                                Log.d("ROUTE_PLANNER", "MODEL UPDATED");
-
                                 long startNodeId = dbProvider.getClosestNodeId(startCoords);
                                 long endNodeId = dbProvider.getClosestNodeId(destCoords);
+                                Node startNode = dbProvider.getNodeById(startNodeId);
+                                Node endNode = dbProvider.getNodeById(endNodeId);
                                 Log.d("ROUTE_PLANNER", "START NODE:" + startNodeId);
                                 Log.d("ROUTE_PLANNER", "END NODE:" + endNodeId);
 
-                                AStar shortestPath = new AStar(dbProvider);
-                                route = shortestPath.aStar(model.getNodeById(startNodeId), model.getNodeById(endNodeId));
+                                //AStar shortestPath = new AStar(dbProvider);
+                                //route = shortestPath.aStar(model.getNodeById(startNodeId), model.getNodeById(endNodeId));
 
                                 MapActivity.getMapService().setStartMapExtent(startCoords, destCoords);
-                                MapActivity.getMapService().setStartNode(model.getNodeById(startNodeId));
-                                MapActivity.getMapService().setEndNode(model.getNodeById(endNodeId));
+                                MapActivity.getMapService().setStartNode(startNode);
+                                MapActivity.getMapService().setEndNode(endNode);
 
-                                double multiplier = DEFAULT_MULTIPLIER;
+                                /*double multiplier = DEFAULT_MULTIPLIER;
                                 while (route.isEmpty()) {
                                     Log.d("ROUTE_PLANNER", "SHORTEST PATH NOT FOUND");
 
@@ -167,17 +160,25 @@ public class RoutePlannerActivity extends Fragment {
                                     route = shortestPath.aStar(model.getNodeById(startNodeId), model.getNodeById(endNodeId));
                                 }
 
-                                Log.d("ROUTE_PLANNER", "SHORTEST PATH FOUND WITH ASTAR");
+                                Log.d("ROUTE_PLANNER", "SHORTEST PATH FOUND WITH ASTAR");*/
 
-                            } catch (IllegalArgumentException e) {
+                            }
+                            catch (IllegalArgumentException e)
+                            {
                                 //TODO:Invalid coords or map too big!
                                 Log.e("ROUTE_PLANNER", "INVALID COORDS OR MAP TOO BIG");
-                            } catch (Exception e) {
+                            }
+                            catch (Exception e)
+                            {
                                 //TODO:You requested too many nodes (limit is 50000). Either request a smaller area, or use planet.osm
                                 e.printStackTrace();
-                            } finally {
-                                MapActivity.getMapService().addEdges(model.getEdgesList());
-                                MapActivity.getMapService().addEdges(route);
+                            }
+                            finally
+                            {
+                                Log.d("ROUTE_PLANNER", "PUT ROUTE ON MAP");
+                                //MapActivity.getMapService().addEdges(model.getEdgesList());
+                                //MapActivity.getMapService().addEdges(route);
+                                Log.d("ROUTE_PLANNER", "READY TO RETURN TO MAP");
                                 getFragmentManager().popBackStack();
                             }
                         } else {
