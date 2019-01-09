@@ -5,4 +5,11 @@
     <string name="scenic_route_min_length">Scenic route minimal length</string>
     <string name="return_map">Return to map</string>
     <string name="find_route">Find route</string>
+    <string name="dialog_alert_title">Error</string>
+    <string name="database_not_available">Database not available.</string>
+    <string name="start_field_empty">Start location field is empty.</string>
+    <string name="destination_field_empty">Destination field is empty.</string>
+    <string name="scenic_route_min_field_empty">Scenic routes minimum distance field is empty.</string>
+    <string name="not_found_start_point">Not found start point.</string>
+    <string name="not_found_destination">Not found destination.</string>
 </resources>

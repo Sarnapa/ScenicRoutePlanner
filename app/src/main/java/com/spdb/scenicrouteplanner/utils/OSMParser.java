@@ -116,7 +116,7 @@ public class OSMParser {
                             if (!highway.isEmpty()) {
                                 try {
                                     OSMClassLib.WayType wayType = OSMClassLib.WayType.valueOf(highway.toUpperCase());
-                                    Way newWay = new Way(wayId, wayType, wayType.isScenicRoute(), maxSpeed);
+                                    Way newWay = new Way(wayId, wayType, wayType.isCouldBeScenicRoute(), maxSpeed);
                                     model.addWay(newWay);
 
                                     for (Edge e : tmpEdges) {

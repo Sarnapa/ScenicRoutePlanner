@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:hint="@string/scenic_route_min_length"
-            android:inputType="number"
+            android:inputType="numberDecimal"
             android:drawableStart="@drawable/scenic_route_min_length_48px"
             android:drawablePadding="5dp" />
     </TableRow>

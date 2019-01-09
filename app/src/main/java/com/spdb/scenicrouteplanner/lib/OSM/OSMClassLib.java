@@ -22,7 +22,7 @@ public final class OSMClassLib
                     UNKNOWN.name());
         }
 
-        public boolean isScenicRoute(){
+        public boolean isCouldBeScenicRoute(){
             if(this.name().equals("UNCLASSIFIED") || this.name().equals("RESIDENTIAL") || this.name().equals("SERVICE"))
                 return true;
             else
