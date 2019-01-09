@@ -144,7 +144,7 @@ public class RoutePlannerActivity extends Fragment {
                                     multiplier = multiplier + MULTIPLIER_HOP;
                                     osmService.getMapExtent(startCoords, destCoords, multiplier);
 
-                                    model = parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
+                                    parser.parseOSMFile(PathsClassLib.MAPS_DIRECTORY.concat("/osm"));
                                     Log.d("ROUTE_PLANNER", "FILES PARSED");
 
                                     Log.d("ROUTE_PLANNER", "ADDING WAYS STARTED");

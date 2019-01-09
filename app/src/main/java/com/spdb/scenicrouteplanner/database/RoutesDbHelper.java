@@ -18,7 +18,8 @@ class RoutesDbHelper extends SQLiteOpenHelper
     private static final int DATABASE_VERSION = 4;
     private static final String DATABASE_NAME = "Routes.db";
 
-    private static final String SQL_INIT_SPATIAL_META_DATA = " SELECT InitSpatialMetaData(1)";
+    // Stara wersja bazy - aktualna w RoutesDbScript
+    /*private static final String SQL_INIT_SPATIAL_META_DATA = " SELECT InitSpatialMetaData(1)";
     private static final String SQL_CREATE_NODES_TABLE = "CREATE TABLE " + NodesTable.TABLE_NAME +
             "( " + NodesTable._ID + " INTEGER PRIMARY KEY, " +
             NodesTable.GEOMETRY_COL_NAME + " GEOMETRY UNIQUE);";
@@ -32,12 +33,12 @@ class RoutesDbHelper extends SQLiteOpenHelper
             "CONSTRAINT " + EdgesTable.WAY_ID_FOREIGN_KEY_CONSTRAINT_NAME + " FOREIGN KEY " +
             "(" + EdgesTable.WAY_ID_COL_NAME + ") " +
             "REFERENCES " + WaysTable.TABLE_NAME + "(" + WaysTable._ID + "), " +
-            /*"CONSTRAINT " + EdgesTable.START_NODE_ID_FOREIGN_KEY_CONSTRAINT_NAME + " FOREIGN KEY " +
+            "CONSTRAINT " + EdgesTable.START_NODE_ID_FOREIGN_KEY_CONSTRAINT_NAME + " FOREIGN KEY " +
             "(" + EdgesTable.START_NODE_ID_COL_NAME + ") " +
             "REFERENCES " + NodesTable.TABLE_NAME + "(" + NodesTable._ID + "), " +
             "CONSTRAINT " + EdgesTable.END_NODE_ID_FOREIGN_KEY_CONSTRAINT_NAME + " FOREIGN KEY " +
             "(" + EdgesTable.END_NODE_ID_COL_NAME + ") " +
-            "REFERENCES " + NodesTable.TABLE_NAME + "(" + NodesTable._ID + "), " +*/
+            "REFERENCES " + NodesTable.TABLE_NAME + "(" + NodesTable._ID + "), " +
             "CONSTRAINT " + EdgesTable.IS_TOUR_ROUTE_CHECK_NAME + " CHECK " +
             "(" + EdgesTable.IS_TOUR_ROUTE_COL_NAME + " IN (0, 1))" + ");";
     private static final String SQL_CREATE_WAYS_TABLE = "CREATE TABLE " + WaysTable.TABLE_NAME +
@@ -48,7 +49,7 @@ class RoutesDbHelper extends SQLiteOpenHelper
             "CONSTRAINT " + WaysTable.WAY_TYPE_CHECK_NAME + " CHECK " +
             "(" + WaysTable.WAY_TYPE_COL_NAME + " IN (" + OSMClassLib.WayType.getWayTypesListText() + ")), " +
             "CONSTRAINT " + WaysTable.IS_SCENIC_ROUTE_CHECK_NAME + " CHECK " +
-            "(" + WaysTable.IS_SCENIC_ROUTE_COL_NAME + " IN (0, 1))" + ");";
+            "(" + WaysTable.IS_SCENIC_ROUTE_COL_NAME + " IN (0, 1))" + ");";*/
 
 
     // ==============================

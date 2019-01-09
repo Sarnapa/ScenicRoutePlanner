@@ -168,6 +168,9 @@ public class OSMParser {
                                     }
                                     edgesNumber += tmpEdges.size();
                                     if (edgesNumber >= EDGES_BUFFER_SIZE) {
+                                        dbProvider.addWays(waysBuffer);
+                                        waysBuffer.clear();
+                                        waysNumber = 0;
                                         dbProvider.addEdges(edgesBuffer);
                                         edgesBuffer.clear();
                                         edgesNumber = tmpEdges.size();

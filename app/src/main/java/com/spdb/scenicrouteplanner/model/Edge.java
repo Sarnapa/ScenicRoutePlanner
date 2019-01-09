@@ -109,4 +109,23 @@ public class Edge {
         isTourRoute = tourRoute;
     }
 
+    public long getStartNodeId() {
+        return startNodeId;
+    }
+
+    public void setStartNodeId(long startNodeId) {
+        this.startNodeId = startNodeId;
+    }
+
+    public long getEndNodeId() {
+        return endNodeId;
+    }
+
+    public void setEndNodeId(long endNodeId) {
+        this.endNodeId = endNodeId;
+    }
+
+    public long getWayId() {
+        return wayId;
+    }
 }

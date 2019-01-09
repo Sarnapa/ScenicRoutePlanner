@@ -3,11 +3,12 @@ package com.spdb.scenicrouteplanner.model;
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Node {
     private long id;
     private GeoCoords geoCoords;
-    private ArrayList<Edge> edges = new ArrayList<>();
+    private List<Edge> edges = new ArrayList<>();
 
     public Node() {
     }
@@ -17,7 +18,7 @@ public class Node {
         this.geoCoords = geoCoords;
     }
 
-    public Node(long id, GeoCoords geoCoords, ArrayList<Edge> edges) {
+    public Node(long id, GeoCoords geoCoords, List<Edge> edges) {
         this.id = id;
         this.geoCoords = geoCoords;
         this.edges = edges;
@@ -39,11 +40,11 @@ public class Node {
         this.geoCoords = geoCoords;
     }
 
-    public ArrayList<Edge> getEdges() {
+    public List<Edge> getEdges() {
         return edges;
     }
 
-    public ArrayList<Edge> getOutgoingEdges() {
+    public List<Edge> getOutgoingEdges() {
         ArrayList<Edge> outgoingEdges = new ArrayList<>();
         for (Edge e : edges) {
             if (e.getEndNode() != this)

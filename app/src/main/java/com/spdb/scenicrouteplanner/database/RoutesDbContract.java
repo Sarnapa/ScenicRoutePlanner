@@ -13,9 +13,11 @@ final class RoutesDbContract
         public static final String GEOMETRY_COL_NAME = "geometry";
     }
 
-    static class NodesTable implements BaseColumns, GeometryColumn
+    static class NodesTable implements BaseColumns
     {
         static final String TABLE_NAME = "nodes";
+        static final String LATITUDE_COL_NAME = "latitude";
+        static final String LONGTITUDE_COL_NAME = "longtitude";
     }
 
     static class EdgesTable implements BaseColumns, GeometryColumn
