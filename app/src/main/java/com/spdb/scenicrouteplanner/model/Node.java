@@ -44,14 +44,14 @@ public class Node {
         return edges;
     }
 
-    public List<Edge> getOutgoingEdges() {
+    /*public List<Edge> getOutgoingEdges() {
         ArrayList<Edge> outgoingEdges = new ArrayList<>();
         for (Edge e : edges) {
             if (e.getEndNode() != this)
                 outgoingEdges.add(e);
         }
         return outgoingEdges;
-    }
+    }*/
 
     public void setEdges(ArrayList<Edge> edges) {
         this.edges = edges;

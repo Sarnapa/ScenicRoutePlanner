@@ -71,8 +71,8 @@ public class Model {
 
     public void printEdges() {
         for (Edge tmp : edges) {
-            Long nodeId1 = tmp.getStartNode().getId();
-            Long nodeId2 = tmp.getEndNode().getId();
+            Long nodeId1 = tmp.getStartNodeId();
+            Long nodeId2 = tmp.getEndNodeId();
             //Log.d("MODEL_TEST", tmp.getId() + " way:" + tmp.getWayId() + " start:" + nodeId1 + " end:" + nodeId2);
             System.out.println("MODEL_TEST: EDGE:" + tmp.getId() + " way:" + tmp.getWayInfo().getId() + " start:" + nodeId1 + " end:" + nodeId2);
         }

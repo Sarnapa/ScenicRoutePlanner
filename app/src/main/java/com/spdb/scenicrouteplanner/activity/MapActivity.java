@@ -45,8 +45,8 @@ public class MapActivity extends Fragment
     {
         super();
 
-        mapService = new MapService();
         dbProvider = new RoutesDbProvider();
+        mapService = new MapService(dbProvider);
     }
 
     // ==============================

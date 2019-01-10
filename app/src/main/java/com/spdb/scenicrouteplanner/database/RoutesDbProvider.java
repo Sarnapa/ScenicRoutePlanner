@@ -3,6 +3,7 @@ package com.spdb.scenicrouteplanner.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -291,14 +292,14 @@ public class RoutesDbProvider
 
     public List<Node> getNodes(String whereClause)
     {
-        String[] nodeProjection = {
+        String[] nodesProjection = {
                 NodesTable._ID,
                 NodesTable.LATITUDE_COL_NAME,
                 NodesTable.LONGTITUDE_COL_NAME
         };
 
-        Cursor nodeCursor = db.query(NodesTable.TABLE_NAME,
-                nodeProjection,
+        Cursor nodesCursor = db.query(NodesTable.TABLE_NAME,
+                nodesProjection,
                 whereClause,
                 null,
                 null,
@@ -307,17 +308,17 @@ public class RoutesDbProvider
 
         List<Node> res = new ArrayList();
 
-        while (nodeCursor.moveToNext())
+        while (nodesCursor.moveToNext())
         {
-            long id = nodeCursor.getLong(nodeCursor.getColumnIndex(NodesTable._ID));
-            double latCoord = nodeCursor.getDouble(nodeCursor.getColumnIndex(NodesTable.LATITUDE_COL_NAME));
-            double longCoord = nodeCursor.getDouble(nodeCursor.getColumnIndex(NodesTable.LONGTITUDE_COL_NAME));
+            long id = nodesCursor.getLong(nodesCursor.getColumnIndex(NodesTable._ID));
+            double latCoord = nodesCursor.getDouble(nodesCursor.getColumnIndex(NodesTable.LATITUDE_COL_NAME));
+            double longCoord = nodesCursor.getDouble(nodesCursor.getColumnIndex(NodesTable.LONGTITUDE_COL_NAME));
 
             List<Edge> edges = getEdges(String.format("%s = %d", EdgesTable.START_NODE_ID_COL_NAME, id));
 
             res.add(new Node(id, new GeoCoords(latCoord, longCoord), edges));
         }
-        nodeCursor.close();
+        nodesCursor.close();
 
         return res;
     }
@@ -399,6 +400,46 @@ public class RoutesDbProvider
             wayCursor.close();
         }
         edgesCursor.close();
+
+        return res;
+    }
+
+    public Way getWayById(long id)
+    {
+        List<Way> res = getWays(String.format("%s = %d", WaysTable._ID, id));
+
+        return res.size() == 1 ? res.get(0) : null;
+    }
+
+    public List<Way> getWays(String whereClause)
+    {
+        String[] waysProjection = {
+                WaysTable._ID,
+                WaysTable.WAY_TYPE_COL_NAME,
+                WaysTable.IS_SCENIC_ROUTE_COL_NAME,
+                WaysTable.MAX_SPEED_COL_NAME
+        };
+
+        Cursor waysCursor = db.query(WaysTable.TABLE_NAME,
+                waysProjection,
+                whereClause,
+                null,
+                null,
+                null,
+                null);
+
+        List<Way> res = new ArrayList();
+
+        while (waysCursor.moveToNext())
+        {
+            long id = waysCursor.getLong(waysCursor.getColumnIndex(WaysTable._ID));
+            WayType wayType = WayType.valueOf(waysCursor.getString(waysCursor.getColumnIndex(WaysTable.WAY_TYPE_COL_NAME)));
+            boolean isScenicRoute = waysCursor.getInt(waysCursor.getColumnIndex(WaysTable.IS_SCENIC_ROUTE_COL_NAME)) == 1;
+            int maxSpeed = waysCursor.getInt(waysCursor.getColumnIndex(WaysTable.MAX_SPEED_COL_NAME));
+
+            res.add(new Way(id, wayType, isScenicRoute, maxSpeed));
+        }
+        waysCursor.close();
 
         return res;
     }
@@ -499,6 +540,21 @@ public class RoutesDbProvider
         return len;
     }
 
+    public long getNodesCount()
+    {
+        return getTableRowsCount(NodesTable.TABLE_NAME);
+    }
+
+    public long getEdgesCount()
+    {
+        return getTableRowsCount(EdgesTable.TABLE_NAME);
+    }
+
+    public long getWaysCount()
+    {
+        return getTableRowsCount(WaysTable.TABLE_NAME);
+    }
+
     public void finalize()
     {
         db.close();
@@ -532,6 +588,16 @@ public class RoutesDbProvider
                 "Transform(GeometryN(AsText(%s), 2), %d)) AS %s",
                 geomColName, dstSrid, geomColName, dstSrid, lengthColName);
 
+    }
+
+    private long getTableRowsCount(String tableName)
+    {
+        String countQuery = "SELECT * FROM " + tableName;
+        Cursor cursor = db.rawQuery(countQuery, null);
+        long count = cursor.getCount();
+        cursor.close();
+
+        return count;
     }
 
     /*class GetDatabaseTask extends AsyncTask<Boolean, Integer, SQLiteDatabase>

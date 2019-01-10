@@ -3,6 +3,7 @@ package com.spdb.scenicrouteplanner.service;
 import android.graphics.Color;
 import android.util.Log;
 
+import com.spdb.scenicrouteplanner.database.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
 import com.spdb.scenicrouteplanner.model.Edge;
 import com.spdb.scenicrouteplanner.model.Node;
@@ -24,6 +25,7 @@ public class MapService implements IMapService
     // Private fields
     // ==============================
     private OverlayManager mapOverlayManager;
+    private RoutesDbProvider dbProvider;
     private BoundingBox startMapExtent;
     private Node startNode;
     private Node endNode;
@@ -43,7 +45,10 @@ public class MapService implements IMapService
     // ==============================
     // Constructors
     // ==============================
-    public MapService() { }
+    public MapService(RoutesDbProvider dbProvider)
+    {
+        this.dbProvider = dbProvider;
+    }
 
     // ==============================
     // Override IOSMService
@@ -80,11 +85,11 @@ public class MapService implements IMapService
     public void addEdge(Edge edge) throws IllegalArgumentException {
         if (edge == null)
             throw new IllegalArgumentException("MapService.addEdge - empty edge argument");
-        Node startNode = edge.getStartNode();
-        if (startNode == null)
+        long startNodeId = edge.getStartNodeId();
+        if (startNodeId == -1)
             throw new IllegalArgumentException("MapService.addEdge - not defined start node");
-        Node endNode = edge.getEndNode();
-        if (endNode == null)
+        long endNodeId = edge.getEndNodeId();
+        if (endNodeId == -1)
             throw new IllegalArgumentException("MapService.addEdge - not defined end node");
 
         mapEdges.add(edge);
@@ -129,37 +134,38 @@ public class MapService implements IMapService
         if (mapOverlayManager != null && mapEdges != null && mapEdges.size() > 0)
         {
             List<Polyline> polylines = new ArrayList<>();
-            for (Edge e: mapEdges)
-            {
-                Node startNode = e.getStartNode();
-                Node endNode = e.getEndNode();
-                final GeoPoint startPoint = new GeoPoint(startNode.getGeoCoords().getLatitude(),
-                        startNode.getGeoCoords().getLongitude());
-                final GeoPoint endPoint = new GeoPoint(endNode.getGeoCoords().getLatitude(),
-                        endNode.getGeoCoords().getLongitude());
+            for (Edge e: mapEdges) {
+                Node startNode = dbProvider.getNodeById(e.getStartNodeId());
+                Node endNode = dbProvider.getNodeById(e.getEndNodeId());
+                if (startNode != null && endNode != null) {
+                    final GeoPoint startPoint = new GeoPoint(startNode.getGeoCoords().getLatitude(),
+                            startNode.getGeoCoords().getLongitude());
+                    final GeoPoint endPoint = new GeoPoint(endNode.getGeoCoords().getLatitude(),
+                            endNode.getGeoCoords().getLongitude());
 
-                Polyline polyline = new Polyline();
+                    Polyline polyline = new Polyline();
 
-                polyline.setPoints(new ArrayList<GeoPoint>() {
-                    {
-                        add(startPoint);
-                        add(endPoint);
+                    polyline.setPoints(new ArrayList<GeoPoint>() {
+                        {
+                            add(startPoint);
+                            add(endPoint);
+                        }
+                    });
+
+                    if (e.isTourRoute()) {
+                        if (e.getWayInfo().isScenicRoute())
+                            polyline.setColor(EdgeColor.SCENIC_TOUR_ROUTE_COLOR);
+                        else
+                            polyline.setColor(EdgeColor.STANDARD_TOUR_ROUTE_COLOR);
+                    } else {
+                        if (e.getWayInfo().isScenicRoute())
+                            polyline.setColor(EdgeColor.SCENIC_ROUTE_COLOR);
+                        else
+                            polyline.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
                     }
-                });
 
-                if (e.isTourRoute()) {
-                    if (e.getWayInfo().isScenicRoute())
-                        polyline.setColor(EdgeColor.SCENIC_TOUR_ROUTE_COLOR);
-                    else
-                        polyline.setColor(EdgeColor.STANDARD_TOUR_ROUTE_COLOR);
-                } else {
-                    if (e.getWayInfo().isScenicRoute())
-                        polyline.setColor(EdgeColor.SCENIC_ROUTE_COLOR);
-                    else
-                        polyline.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
+                    polylines.add(polyline);
                 }
-
-                polylines.add(polyline);
             }
 
             mapOverlayManager.addAll(polylines);

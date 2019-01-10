@@ -8,6 +8,8 @@ public class Way {
     private boolean isScenicRoute;
     private double maxSpeed;
 
+    public Way() {}
+
     public Way(long id, OSMClassLib.WayType wayType, boolean isScenicRoute, double maxSpeed) {
         this.id = id;
         this.wayType = wayType;

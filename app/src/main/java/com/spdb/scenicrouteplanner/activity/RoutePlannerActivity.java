@@ -118,8 +118,8 @@ public class RoutePlannerActivity extends Fragment {
                                 //Log.d("ROUTE_PLANNER", "PARSING PROCESS ENDED AND DATABASE UPDATED");
 
                                 /*Log.d("ROUTE_PLANNER", "GENERATING SCENIC ROUTES STARTED");
-                                ScenicRoutesGenerator scenicRoutesGenerator = new ScenicRoutesGenerator();
-                                scenicRoutesGenerator.generate(model.getEdgesList());
+                                ScenicRoutesGenerator scenicRoutesGenerator = new ScenicRoutesGenerator(dbProvider);
+                                scenicRoutesGenerator.generate();
                                 Log.d("ROUTE_PLANNER", "GENERATING SCENIC ROUTES ENDED");*/
 
                                 long startNodeId = dbProvider.getClosestNodeId(startCoords);

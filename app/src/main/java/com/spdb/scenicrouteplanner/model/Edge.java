@@ -5,46 +5,13 @@ public class Edge {
 
     private long id;
     private Way wayInfo;
-    private Node startNode;
-    private Node endNode;
+    private long wayId = -1;
+    private long startNodeId = -1;
+    private long endNodeId = -1;
     private double length;
     private boolean isTourRoute;
 
-    private long startNodeId;
-    private long endNodeId;
-    private long wayId;
-
     public Edge() {
-    }
-
-    public Edge(long id, Way wayInfo, Node startNode, Node endNode, double length) {
-        this.id = id;
-        this.wayInfo = wayInfo;
-        this.startNode = startNode;
-        this.endNode = endNode;
-        this.length = length;
-    }
-
-    public Edge(long id, Way wayInfo, Node startNode, Node endNode, double length, boolean isTourRoute) {
-        this.id = id;
-        this.wayInfo = wayInfo;
-        this.startNode = startNode;
-        this.endNode = endNode;
-        this.length = length;
-        this.isTourRoute = isTourRoute;
-    }
-
-    public Edge(long id, Node startNode, Node endNode, boolean isTourRoute) {
-        this.id = id;
-        this.startNode = startNode;
-        this.endNode = endNode;
-        this.isTourRoute = isTourRoute;
-    }
-
-    public Edge(long id, Node startNode, Node endNode) {
-        this.id = id;
-        this.startNode = startNode;
-        this.endNode = endNode;
     }
 
     public Edge(long id, long startNodeId, long endNodeId) {
@@ -53,8 +20,28 @@ public class Edge {
         this.endNodeId = endNodeId;
     }
 
-    public void setWayId(long wayId){
-        this.wayId = wayId;
+    public Edge(long id, Way wayInfo, long startNodeId, long endNodeId, double length) {
+        this.id = id;
+        this.wayInfo = wayInfo;
+        this.startNodeId = startNodeId;
+        this.endNodeId = endNodeId;
+        this.length = length;
+    }
+
+    public Edge(long id, Way wayInfo, long startNodeId, long endNodeId, double length, boolean isTourRoute) {
+        this.id = id;
+        this.wayInfo = wayInfo;
+        this.startNodeId = startNodeId;
+        this.endNodeId = endNodeId;
+        this.length = length;
+        this.isTourRoute = isTourRoute;
+    }
+
+    public Edge(long id, long startNodeId, long endNodeId, boolean isTourRoute) {
+        this.id = id;
+        this.startNodeId = startNodeId;
+        this.endNodeId = endNodeId;
+        this.isTourRoute = isTourRoute;
     }
 
     public static long getNextId() {
@@ -64,7 +51,6 @@ public class Edge {
     public long getId() {
         return id;
     }
-
     public void setId(long id) {
         this.id = id;
     }
@@ -72,47 +58,20 @@ public class Edge {
     public Way getWayInfo() {
         return wayInfo;
     }
-
     public void setWayInfo(Way wayInfo) {
         this.wayInfo = wayInfo;
     }
 
-    public Node getStartNode() {
-        return startNode;
+    public long getWayId() {
+        return wayId;
     }
-
-    public void setStartNode(Node startNode) {
-        this.startNode = startNode;
-    }
-
-    public Node getEndNode() {
-        return endNode;
-    }
-
-    public void setEndNode(Node endNode) {
-        this.endNode = endNode;
-    }
-
-    public double getLength() {
-        return length;
-    }
-
-    public void setLength(double length) {
-        this.length = length;
-    }
-
-    public boolean isTourRoute() {
-        return isTourRoute;
-    }
-
-    public void setTourRoute(boolean tourRoute) {
-        isTourRoute = tourRoute;
+    public void setWayId(long wayId){
+        this.wayId = wayId;
     }
 
     public long getStartNodeId() {
         return startNodeId;
     }
-
     public void setStartNodeId(long startNodeId) {
         this.startNodeId = startNodeId;
     }
@@ -120,12 +79,21 @@ public class Edge {
     public long getEndNodeId() {
         return endNodeId;
     }
-
     public void setEndNodeId(long endNodeId) {
         this.endNodeId = endNodeId;
     }
 
-    public long getWayId() {
-        return wayId;
+    public double getLength() {
+        return length;
+    }
+    public void setLength(double length) {
+        this.length = length;
+    }
+
+    public boolean isTourRoute() {
+        return isTourRoute;
+    }
+    public void setTourRoute(boolean tourRoute) {
+        isTourRoute = tourRoute;
     }
 }

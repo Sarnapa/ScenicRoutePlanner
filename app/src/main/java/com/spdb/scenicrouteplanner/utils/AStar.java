@@ -13,14 +13,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 
-public class AStar {
-
+public class AStar
+{
+    // ==============================
+    // Private fields
+    // ==============================
     private RoutesDbProvider dbProvider;
 
+    // ==============================
+    // Constructors
+    // ==============================
     public AStar(RoutesDbProvider dbProvider) {
         this.dbProvider = dbProvider;
     }
 
+    // ==============================
+    // Public methods
+    // ==============================
     public List<Edge> aStar(Node start, Node dest) {
         //Current best path to node distance
         Map<Node, Double> gScore = new HashMap<>();
@@ -60,18 +69,21 @@ public class AStar {
             openSet.remove(current);
             closedSet.add(current);
 
-            for (Edge e : current.getOutgoingEdges()) {
+            for (Edge e : current.getEdges()) {
                 Double tmpDist = 0.0;
                 List<Edge> tmpRoute = new ArrayList<>();
                 Edge tmpE = e;
-                while (tmpE.getEndNode().getOutgoingEdges().size() == 1 && (tmpE.getEndNode() != dest)) {
+                Node endNode = getNode(tmpE.getEndNodeId());
+                while (endNode.getEdges().size() == 1 && (endNode != dest))
+                {
                     tmpRoute.add(tmpE);
                     tmpDist += tmpE.getLength();
-                    tmpE = tmpE.getEndNode().getOutgoingEdges().get(0);
+                    tmpE = endNode.getEdges().get(0);
+                    endNode = getNode(tmpE.getEndNodeId());
                 }
                 tmpDist += tmpE.getLength();
                 tmpRoute.add(tmpE);
-                Node neighbour = tmpE.getEndNode();
+                Node neighbour = endNode;
                 /*
                 if(neighbour.getOutgoingEdges().size() == 0){    //End of route
 
@@ -91,9 +103,7 @@ public class AStar {
                 cameFrom.put(neighbour, tmpRoute);
                 gScore.put(neighbour, tentativeGScore);
                 fScore.put(neighbour, (tentativeGScore + estimatedDistToDest(neighbour, dest)));
-
             }
-
         }
 
         //TODO:find nearest if not destination?
@@ -101,7 +111,9 @@ public class AStar {
         return null;
     }
 
-
+    // ==============================
+    // Private methods
+    // ==============================
     private Node getMinFScoreNode(List<Node> openSet, Map<Node, Double> fScore) {
         if (openSet.isEmpty())
             return null;
@@ -123,11 +135,12 @@ public class AStar {
         return dbProvider.getDistance(current, dest);
     }
 
-    private List<Edge> reconstructPath(Map<Node, List<Edge>> cameFrom, Node current) {
+    private List<Edge> reconstructPath(Map<Node, List<Edge>> cameFrom, Node current)
+    {
         List<Edge> finalPath = new ArrayList<>();
         List<Edge> tmp = cameFrom.get(current);
         while ((tmp) != null) {
-            current = tmp.get(0).getStartNode();
+            current = getNode(tmp.get(0).getStartNodeId());
             Collections.reverse(tmp);
             finalPath.addAll(tmp);
             tmp = cameFrom.get(current);
@@ -140,5 +153,12 @@ public class AStar {
         return finalPath;
     }
 
+    private Node getNode(long id)
+    {
+        Node endNode = dbProvider.getNodeById(id);
+        if (endNode == null)
+            endNode = new Node();
 
+        return endNode;
+    }
 }
