@@ -215,13 +215,46 @@ public class MazovianRoutesDbProvider
         return res;
     }
 
+    public List<GeoCoords> getRouteGeoCoords(long nodeFrom, long nodeTo)
+    {
+        if (nodeFrom < 0)
+            throw new IllegalArgumentException("MazovianRoutesDbProvider.getGeoCoordsRoute - invalid nodeFrom");
+
+        if (nodeTo < 0)
+            throw new IllegalArgumentException("MazovianRoutesDbProvider.getGeoCoordsRoute - invalid nodeTo");
+
+        final String SQL_GET_ROAD_CLASS = String.format(Locale.US, "SELECT AsText(%s) AS %s FROM %s WHERE " +
+                        "(%s=%d AND %s=%d AND %s=1) OR (%s=%d AND %s=%d AND %s=1)",
+                MazovianRoutesDbContract.RoadsTable.GEOMETRY_COL_NAME,
+                MazovianRoutesDbContract.GEOMETRY_TEXT_COL_NAME,
+                MazovianRoutesDbContract.RoadsTable.TABLE_NAME,
+                MazovianRoutesDbContract.RoadsTable.NODE_FROM_COL_NAME, nodeFrom,
+                MazovianRoutesDbContract.RoadsTable.NODE_TO_COL_NAME, nodeTo,
+                MazovianRoutesDbContract.RoadsTable.ONEWAY_FROMTO_COL_NAME,
+                MazovianRoutesDbContract.RoadsTable.NODE_FROM_COL_NAME, nodeTo,
+                MazovianRoutesDbContract.RoadsTable.NODE_TO_COL_NAME, nodeFrom,
+                MazovianRoutesDbContract.RoadsTable.ONEWAY_TOFROM_COL_NAME);
+        Cursor cursor = db.rawQuery(SQL_GET_ROAD_CLASS, null);
+
+        List<GeoCoords> geoCoords = new ArrayList<>();
+        String geoCoordsText = null;
+        if (cursor.moveToFirst())
+            geoCoordsText = cursor.getString(cursor.getColumnIndex(MazovianRoutesDbContract.GEOMETRY_TEXT_COL_NAME));
+        cursor.close();
+
+        if (geoCoords != null || !geoCoords.isEmpty())
+            geoCoords = getRouteGeoCoords(geoCoordsText);
+
+        return geoCoords;
+    }
+
     public boolean isScenicRouteByNodes(long nodeFrom, long nodeTo)
     {
         if (nodeFrom < 0)
-            throw new IllegalArgumentException("MazovianRoutesDbProvider.calculateShortestPath - invalid nodeFrom");
+            throw new IllegalArgumentException("MazovianRoutesDbProvider.isScenicRouteByNodes - invalid nodeFrom");
 
         if (nodeTo < 0)
-            throw new IllegalArgumentException("MazovianRoutesDbProvider.calculateShortestPath - invalid nodeTo");
+            throw new IllegalArgumentException("MazovianRoutesDbProvider.isScenicRouteByNodes - invalid nodeTo");
 
         final String SQL_GET_ROAD_CLASS = String.format(Locale.US, "SELECT %s FROM %s WHERE " +
                 "(%s=%d AND %s=%d AND %s=1) OR (%s=%d AND %s=%d AND %s=1)",
@@ -238,6 +271,7 @@ public class MazovianRoutesDbProvider
         String wayTypeName = "";
         if (cursor.moveToFirst())
             wayTypeName = cursor.getString(cursor.getColumnIndex(MazovianRoutesDbContract.RoadsTable.CLASS_COL_NAME));
+        cursor.close();
 
         if (wayTypeName != null && !wayTypeName.isEmpty())
             return OSMClassLib.WayType.isScenicRoute(wayTypeName);
@@ -248,7 +282,7 @@ public class MazovianRoutesDbProvider
     // ==============================
     // Private methods
     // ==============================
-    private static List<GeoCoords> getNodeGeoCoordsFromEdge(String geom)
+    private static List<GeoCoords> getRouteGeoCoords(String geom)
     {
         List<GeoCoords> res = new ArrayList();
         String coordsText = geom.substring(geom.indexOf('(') + 1, geom.indexOf(')')).replaceAll(",", "");

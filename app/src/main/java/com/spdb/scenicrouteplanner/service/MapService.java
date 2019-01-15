@@ -114,20 +114,18 @@ public class MapService implements IMapService
 
                     GeoCoords startNodeGeoCoords = dbProvider.getNodeGeoCoords(startNodeId);
                     GeoCoords endNodeGeoCoords = dbProvider.getNodeGeoCoords(endNodeId);
-                    if (startNodeGeoCoords != null && endNodeGeoCoords != null) {
-                        final GeoPoint startPoint = new GeoPoint(startNodeGeoCoords.getLatitude(),
-                                startNodeGeoCoords.getLongitude());
-                        final GeoPoint endPoint = new GeoPoint(endNodeGeoCoords.getLatitude(),
-                                endNodeGeoCoords.getLongitude());
+                    if (startNodeGeoCoords != null && endNodeGeoCoords != null)
+                    {
+                        final List<GeoCoords> routeGeoCoords = dbProvider.getRouteGeoCoords(startNodeId, endNodeId);
 
                         Polyline polyline = new Polyline();
 
-                        polyline.setPoints(new ArrayList<GeoPoint>() {
-                            {
-                                add(startPoint);
-                                add(endPoint);
-                            }
-                        });
+                        List<GeoPoint> routeGeoPoints = new ArrayList<>();
+                        for (GeoCoords coords: routeGeoCoords)
+                        {
+                            routeGeoPoints.add(new GeoPoint(coords.getLatitude(), coords.getLongitude()));
+                        }
+                        polyline.setPoints(routeGeoPoints);
 
                     /*if (e.isTourRoute()) {
                         if (e.getWayInfo().isScenicRoute())
@@ -141,10 +139,10 @@ public class MapService implements IMapService
                             polyline.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
                     }*/
 
-                        if (dbProvider.isScenicRouteByNodes(startNodeId, endNodeId))
-                            polyline.setColor(EdgeColor.SCENIC_ROUTE_COLOR);
-                        else
-                            polyline.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
+                        //if (dbProvider.isScenicRouteByNodes(startNodeId, endNodeId))
+                            //polyline.setColor(EdgeColor.SCENIC_ROUTE_COLOR);
+                        //else
+                        polyline.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
 
                         polylines.add(polyline);
                     }
