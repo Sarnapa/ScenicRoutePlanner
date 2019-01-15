@@ -12,18 +12,23 @@ public final class OSMClassLib
         UNCLASSIFIED,
         RESIDENTIAL,
         SERVICE,
-        UNKNOWN;
+        OTHER;
 
         public static String getWayTypesListText()
         {
             return String.format("'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'", MOTORWAY.name(),
                     TRUNK.name(), PRIMARY.name(), SECONDARY.name(), TERTIARY.name(),
                     UNCLASSIFIED.name(), RESIDENTIAL.name(), SERVICE.name(),
-                    UNKNOWN.name());
+                    OTHER.name());
         }
 
-        public boolean isCouldBeScenicRoute(){
-            if(this.name().equals("UNCLASSIFIED") || this.name().equals("RESIDENTIAL") || this.name().equals("SERVICE"))
+        public static boolean isScenicRoute(String name)
+        {
+            return name.toUpperCase().equals(UNCLASSIFIED.name());
+        }
+
+        public boolean isScenicRoute(){
+            if(this.name().toUpperCase().equals("UNCLASSIFIED"))
                 return true;
             else
                 return false;

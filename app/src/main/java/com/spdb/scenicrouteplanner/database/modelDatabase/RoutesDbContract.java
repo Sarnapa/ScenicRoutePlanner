@@ -1,4 +1,4 @@
-package com.spdb.scenicrouteplanner.database;
+package com.spdb.scenicrouteplanner.database.modelDatabase;
 
 import android.provider.BaseColumns;
 

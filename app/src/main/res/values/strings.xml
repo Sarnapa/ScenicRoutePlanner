@@ -12,4 +12,6 @@
     <string name="scenic_route_min_field_empty">Scenic routes minimum distance field is empty.</string>
     <string name="not_found_start_point">Not found start point.</string>
     <string name="not_found_destination">Not found destination.</string>
+    <string name="find_route_process_error">Finding route failed.</string>
+    <string name="put_route_on_map_error">Putting route on map failed.</string>
 </resources>

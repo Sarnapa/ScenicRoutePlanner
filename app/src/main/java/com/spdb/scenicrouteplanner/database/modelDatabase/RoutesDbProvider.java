@@ -1,10 +1,7 @@
-package com.spdb.scenicrouteplanner.database;
+package com.spdb.scenicrouteplanner.database.modelDatabase;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
@@ -15,7 +12,7 @@ import com.spdb.scenicrouteplanner.model.Node;
 import com.spdb.scenicrouteplanner.model.Way;
 import com.spdb.scenicrouteplanner.utils.FileUtils;
 
-import static com.spdb.scenicrouteplanner.database.RoutesDbContract.*;
+import static com.spdb.scenicrouteplanner.database.modelDatabase.RoutesDbContract.*;
 import static com.spdb.scenicrouteplanner.lib.OSM.OSMClassLib.*;
 
 import org.spatialite.database.SQLiteDatabase;
@@ -24,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ExecutionException;
 
 public class RoutesDbProvider
 {

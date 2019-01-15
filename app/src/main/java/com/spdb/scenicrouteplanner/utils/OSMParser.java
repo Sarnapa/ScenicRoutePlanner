@@ -2,11 +2,10 @@ package com.spdb.scenicrouteplanner.utils;
 
 import android.util.Log;
 
-import com.spdb.scenicrouteplanner.database.RoutesDbProvider;
+import com.spdb.scenicrouteplanner.database.modelDatabase.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
 import com.spdb.scenicrouteplanner.lib.OSM.OSMClassLib;
 import com.spdb.scenicrouteplanner.model.Edge;
-import com.spdb.scenicrouteplanner.model.Model;
 import com.spdb.scenicrouteplanner.model.Node;
 import com.spdb.scenicrouteplanner.model.Way;
 
@@ -20,8 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import okhttp3.Route;
 
 public class OSMParser {
 
@@ -148,7 +145,7 @@ public class OSMParser {
                             if (!highway.isEmpty()) {
                                 try {
                                     OSMClassLib.WayType wayType = OSMClassLib.WayType.valueOf(highway.toUpperCase());
-                                    Way newWay = new Way(wayId, wayType, wayType.isCouldBeScenicRoute(), maxSpeed);
+                                    Way newWay = new Way(wayId, wayType, wayType.isScenicRoute(), maxSpeed);
 
                                     waysNumber++;
                                     if (waysNumber >= WAYS_BUFFER_SIZE) {

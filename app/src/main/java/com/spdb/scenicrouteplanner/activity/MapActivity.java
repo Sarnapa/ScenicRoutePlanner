@@ -1,15 +1,21 @@
 package com.spdb.scenicrouteplanner.activity;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 
-import com.spdb.scenicrouteplanner.database.RoutesDbProvider;
+import com.spdb.scenicrouteplanner.database.MazovianRoutesDbProvider;
+import com.spdb.scenicrouteplanner.database.modelDatabase.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.service.MapService;
 import com.spdb.scenicrouteplanner.service.interfaces.IMapService;
 
@@ -25,7 +31,7 @@ public class MapActivity extends Fragment
     // ==============================
     private MapView mapView;
     private static MapService mapService;
-    private static RoutesDbProvider dbProvider;
+    private static MazovianRoutesDbProvider dbProvider;
 
     // ==============================
     // Getters and Setters
@@ -35,17 +41,16 @@ public class MapActivity extends Fragment
     {
         return mapService;
     }
-    public static RoutesDbProvider getDbProvider()
+    public static MazovianRoutesDbProvider getDbProvider()
     {
         return dbProvider;
     }
-
 
     public MapActivity()
     {
         super();
 
-        dbProvider = new RoutesDbProvider();
+        dbProvider = new MazovianRoutesDbProvider();
         mapService = new MapService(dbProvider);
     }
 
@@ -87,21 +92,31 @@ public class MapActivity extends Fragment
         mapView.setTileSource(TileSourceFactory.DEFAULT_TILE_SOURCE);
 
         mapService.setMapOverlayManager(mapView.getOverlayManager());
-        mapService.putAllEdgesOnMap();
-        mapService.putStartEndNodeOnMap();
 
         mapView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
         {
             @Override
             public void onGlobalLayout()
             {
-                BoundingBox startMapExtent = mapService.getStartMapExtent();
-                if (startMapExtent != null)
+                try
                 {
-                    mapView.zoomToBoundingBox(startMapExtent, false);
+                    BoundingBox startMapExtent = mapService.getStartMapExtent();
+                    if (startMapExtent != null)
+                    {
+                        mapService.putAllEdgesOnMap();
+                        mapView.zoomToBoundingBox(startMapExtent, false);
+                    }
                 }
-                mapView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-
+                catch (Exception e)
+                {
+                    showAlertDialog(getContext(), com.spdb.scenicrouteplanner.R.string.dialog_alert_title,
+                            com.spdb.scenicrouteplanner.R.string.put_route_on_map_error);
+                    Log.d("MapActivity", e.getMessage());
+                }
+                finally
+                {
+                    mapView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
             }
         });
 
@@ -137,4 +152,25 @@ public class MapActivity extends Fragment
     // ==============================
     // Private methods
     // ==============================
+    private void showAlertDialog(Context context, int titleId, int msgId)
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        try
+        {
+            builder.setTitle(getResources().getString(titleId))
+                    .setMessage(getResources().getString(msgId))
+                    .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener()
+                    {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+        }
+        catch (Resources.NotFoundException e)
+        {
+            Log.d("ROUTE_PLANNER", "NOT FOUND RESOURCE: " + msgId);
+        }
+    }
 }

@@ -2,7 +2,7 @@ package com.spdb.scenicrouteplanner.utils;
 
 import android.util.Log;
 
-import com.spdb.scenicrouteplanner.database.RoutesDbProvider;
+import com.spdb.scenicrouteplanner.database.modelDatabase.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.model.*;
 
 import java.util.ArrayList;

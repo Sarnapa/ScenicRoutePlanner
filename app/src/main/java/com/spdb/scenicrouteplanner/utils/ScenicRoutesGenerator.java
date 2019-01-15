@@ -1,6 +1,6 @@
 package com.spdb.scenicrouteplanner.utils;
 
-import com.spdb.scenicrouteplanner.database.RoutesDbProvider;
+import com.spdb.scenicrouteplanner.database.modelDatabase.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.model.Edge;
 import com.spdb.scenicrouteplanner.model.Node;
 import com.spdb.scenicrouteplanner.model.Way;
@@ -71,7 +71,7 @@ public class ScenicRoutesGenerator
                 if (!scenicWaysDict.containsKey(e.getWayId()))
                 {
                     Way w = e.getWayInfo();
-                    if (w.getWayType().isCouldBeScenicRoute())
+                    if (w.getWayType().isScenicRoute())
                     {
                         setScenicWay(w);
                         setNeighbours(getNode(e.getStartNodeId()), e, 0);
@@ -96,7 +96,7 @@ public class ScenicRoutesGenerator
             for (Edge e : n.getEdges()) {
                 if (e != parentEdge && !scenicWaysDict.containsKey(e.getWayId())) {
                     Way w = e.getWayInfo();
-                    if (!w.isScenicRoute() && w.getWayType().isCouldBeScenicRoute()) {
+                    if (!w.isScenicRoute() && w.getWayType().isScenicRoute()) {
                         setScenicWay(w);
 
                         if (e.getStartNodeId() == n.getId())

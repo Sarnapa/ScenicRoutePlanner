@@ -1,9 +1,12 @@
 package com.spdb.scenicrouteplanner.service;
 
+import android.database.Cursor;
 import android.graphics.Color;
 import android.util.Log;
 
-import com.spdb.scenicrouteplanner.database.RoutesDbProvider;
+import com.spdb.scenicrouteplanner.database.MazovianRoutesDbProvider;
+import com.spdb.scenicrouteplanner.database.modelDatabase.RoutesDbProvider;
+import com.spdb.scenicrouteplanner.database.structures.PathResult;
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
 import com.spdb.scenicrouteplanner.model.Edge;
 import com.spdb.scenicrouteplanner.model.Node;
@@ -25,11 +28,11 @@ public class MapService implements IMapService
     // Private fields
     // ==============================
     private OverlayManager mapOverlayManager;
-    private RoutesDbProvider dbProvider;
-    private BoundingBox startMapExtent;
-    private Node startNode;
-    private Node endNode;
-    private List<Edge> mapEdges = new ArrayList<>();
+    private MazovianRoutesDbProvider dbProvider;
+    private GeoCoords start;
+    private GeoCoords end;
+
+    private static double MAP_BUFFER = 0.001f;
 
     // ==============================
     // Getters and Setters
@@ -45,7 +48,7 @@ public class MapService implements IMapService
     // ==============================
     // Constructors
     // ==============================
-    public MapService(RoutesDbProvider dbProvider)
+    public MapService(MazovianRoutesDbProvider dbProvider)
     {
         this.dbProvider = dbProvider;
     }
@@ -53,106 +56,80 @@ public class MapService implements IMapService
     // ==============================
     // Override IOSMService
     // ==============================
-
-    // Gdy będzie baza, tej metody nie będzie i getStartMapExtent będzie czytal z bazy
-    @Override
-    public void setStartMapExtent(GeoCoords v1, GeoCoords v2)
-    {
-        double buffer = 0.001;
-
-        double north = Math.max(v1.getLatitude(), v2.getLatitude());
-        double south = Math.min(v1.getLatitude(), v2.getLatitude());
-        double east = Math.max(v1.getLongitude(), v2.getLongitude());
-        double west = Math.min(v1.getLongitude(), v2.getLongitude());
-
-        startMapExtent = new BoundingBox(north + buffer, east + buffer, south - buffer,
-                west - buffer);
-    }
-
-    @Override
-    public void setStartNode(Node n) { this.startNode = n; }
-
-    @Override
-    public void setEndNode(Node n) { this.endNode = n; }
-
     @Override
     public BoundingBox getStartMapExtent()
     {
-        return startMapExtent;
-    }
+        Cursor resultCursor = getResultCursor();
+        if (mapOverlayManager != null && resultCursor != null) {
+            try
+            {
+                if(resultCursor.moveToFirst()) {
+                    PathResult res = dbProvider.getPathResult(resultCursor);
 
-    @Override
-    public void addEdge(Edge edge) throws IllegalArgumentException {
-        if (edge == null)
-            throw new IllegalArgumentException("MapService.addEdge - empty edge argument");
-        long startNodeId = edge.getStartNodeId();
-        if (startNodeId == -1)
-            throw new IllegalArgumentException("MapService.addEdge - not defined start node");
-        long endNodeId = edge.getEndNodeId();
-        if (endNodeId == -1)
-            throw new IllegalArgumentException("MapService.addEdge - not defined end node");
+                    if (res != null) {
+                        long startNodeId = res.getNodeFrom();
+                        long endNodeId = res.getNodeTo();
 
-        mapEdges.add(edge);
-    }
+                        if (startNodeId >= 0 && endNodeId >= 0) {
+                            start = dbProvider.getNodeGeoCoords(startNodeId);
+                            end = dbProvider.getNodeGeoCoords(endNodeId);
 
-    @Override
-    public void addEdges(List<Edge> edges) throws IllegalArgumentException {
-        for (Edge e : edges)
-            addEdge(e);
-    }
+                            if (start != null && end != null) {
+                                double north = Math.max(start.getLatitude(), end.getLatitude());
+                                double south = Math.min(start.getLatitude(), end.getLatitude());
+                                double east = Math.max(start.getLongitude(), end.getLongitude());
+                                double west = Math.min(start.getLongitude(), end.getLongitude());
 
-    @Override
-    public void removeStartEndNode() {
-        startNode = null;
-        endNode = null;
-    }
+                                putStartEndNodeOnMap();
 
-    @Override
-    public void removeAllEdges() {
-        if (mapEdges != null)
-            mapEdges.clear();
-    }
-
-    @Override
-    public void putStartEndNodeOnMap()
-    {
-        if (mapOverlayManager != null && startNode != null && endNode != null)
-        {
-            Overlay startPoint = getNodePoint(startNode, NodeColor.START_COLOR);
-            Overlay endPoint = getNodePoint(endNode, NodeColor.END_COLOR);
-
-            mapOverlayManager.add(startPoint);
-            mapOverlayManager.add(endPoint);
+                                return new BoundingBox(north + MAP_BUFFER, east + MAP_BUFFER,
+                                        south - MAP_BUFFER, west - MAP_BUFFER);
+                            }
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                resultCursor.close();
+            }
         }
-        else
-            Log.d("MAP_SERVICE", "Not initialized map Overlay Manager or null nodes.");
+        return null;
     }
 
     @Override
     public void putAllEdgesOnMap()
     {
-        if (mapOverlayManager != null && mapEdges != null && mapEdges.size() > 0)
+        Cursor resultCursor = getResultCursor();
+        if (mapOverlayManager != null && resultCursor != null)
         {
-            List<Polyline> polylines = new ArrayList<>();
-            for (Edge e: mapEdges) {
-                Node startNode = dbProvider.getNodeById(e.getStartNodeId());
-                Node endNode = dbProvider.getNodeById(e.getEndNodeId());
-                if (startNode != null && endNode != null) {
-                    final GeoPoint startPoint = new GeoPoint(startNode.getGeoCoords().getLatitude(),
-                            startNode.getGeoCoords().getLongitude());
-                    final GeoPoint endPoint = new GeoPoint(endNode.getGeoCoords().getLatitude(),
-                            endNode.getGeoCoords().getLongitude());
+            try {
+                List<Polyline> polylines = new ArrayList<>();
+                // Pierwszy wynik to cała droga
+                resultCursor.moveToNext();
+                while (resultCursor.moveToNext()) {
+                    PathResult edgeResult = dbProvider.getPathResult(resultCursor);
+                    long startNodeId = edgeResult.getNodeFrom();
+                    long endNodeId = edgeResult.getNodeTo();
 
-                    Polyline polyline = new Polyline();
+                    GeoCoords startNodeGeoCoords = dbProvider.getNodeGeoCoords(startNodeId);
+                    GeoCoords endNodeGeoCoords = dbProvider.getNodeGeoCoords(endNodeId);
+                    if (startNodeGeoCoords != null && endNodeGeoCoords != null) {
+                        final GeoPoint startPoint = new GeoPoint(startNodeGeoCoords.getLatitude(),
+                                startNodeGeoCoords.getLongitude());
+                        final GeoPoint endPoint = new GeoPoint(endNodeGeoCoords.getLatitude(),
+                                endNodeGeoCoords.getLongitude());
 
-                    polyline.setPoints(new ArrayList<GeoPoint>() {
-                        {
-                            add(startPoint);
-                            add(endPoint);
-                        }
-                    });
+                        Polyline polyline = new Polyline();
 
-                    if (e.isTourRoute()) {
+                        polyline.setPoints(new ArrayList<GeoPoint>() {
+                            {
+                                add(startPoint);
+                                add(endPoint);
+                            }
+                        });
+
+                    /*if (e.isTourRoute()) {
                         if (e.getWayInfo().isScenicRoute())
                             polyline.setColor(EdgeColor.SCENIC_TOUR_ROUTE_COLOR);
                         else
@@ -162,25 +139,64 @@ public class MapService implements IMapService
                             polyline.setColor(EdgeColor.SCENIC_ROUTE_COLOR);
                         else
                             polyline.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
+                    }*/
+
+                        if (dbProvider.isScenicRouteByNodes(startNodeId, endNodeId))
+                            polyline.setColor(EdgeColor.SCENIC_ROUTE_COLOR);
+                        else
+                            polyline.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
+
+                        polylines.add(polyline);
                     }
-
-                    polylines.add(polyline);
                 }
-            }
 
-            mapOverlayManager.addAll(polylines);
+                mapOverlayManager.addAll(polylines);
+            }
+            finally
+            {
+                resultCursor.close();
+            }
         }
         else
-            Log.d("MAP_SERVICE", "Not initialized map Overlay Manager or empty map edges collection.");
+            Log.d("MAP_SERVICE", "Not initialized map Overlay Manager or invalid nodes.");
     }
 
+    @Override
+    public void clear()
+    {
+        mapOverlayManager.clear();
+        start = null;
+        end = null;
+    }
     // ==============================
     // Private methods
     // ==============================
-
-    private Polygon getNodePoint(Node n, int color)
+    private Cursor getResultCursor()
     {
-        final GeoPoint point = new GeoPoint(n.getGeoCoords().getLatitude(), n.getGeoCoords().getLongitude());
+        if (dbProvider.isDbAvailable())
+        {
+            return dbProvider.getShortestPath();
+        }
+        return null;
+    }
+
+    private void putStartEndNodeOnMap()
+    {
+        if (mapOverlayManager != null && start != null && end != null)
+        {
+            Overlay startPoint = getNodePoint(start, NodeColor.START_COLOR);
+            Overlay endPoint = getNodePoint(end, NodeColor.END_COLOR);
+
+            mapOverlayManager.add(startPoint);
+            mapOverlayManager.add(endPoint);
+        }
+        else
+            Log.d("MAP_SERVICE", "Not initialized map Overlay Manager or invalid nodes.");
+    }
+
+    private Polygon getNodePoint(GeoCoords node, int color)
+    {
+        final GeoPoint point = new GeoPoint(node.getLatitude(), node.getLongitude());
 
         final double radius = 5;
         ArrayList<GeoPoint> circlePoints = new ArrayList<GeoPoint>();

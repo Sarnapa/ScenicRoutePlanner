@@ -1,10 +1,6 @@
-package com.spdb.scenicrouteplanner.database;
+package com.spdb.scenicrouteplanner.database.modelDatabase;
 
 import android.content.Context;
-
-import com.spdb.scenicrouteplanner.lib.OSM.OSMClassLib;
-
-import static com.spdb.scenicrouteplanner.database.RoutesDbContract.*;
 
 import org.spatialite.database.SQLiteDatabase;
 import org.spatialite.database.SQLiteOpenHelper;
