@@ -54,6 +54,7 @@ final class MazovianRoutesDbContract
     // Nazwy kolumn w zapytaniach
     static final String DISTANCE_COL_NAME = "distance";
     static final String GEOMETRY_TEXT_COL_NAME = "geometry_text";
+    static final String SCENIC_ROUTE_COL_NAME = "ScenicRoute";
 
     // Tablice tymczasowe
     // Ta sama struktura co RoadsNetTable

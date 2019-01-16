@@ -1,0 +1,56 @@
+// usuniecie wszystkich tabel tymczasowych przed startem
+DROP TABLE IF EXISTS shortest_path_result;
+DROP TABLE IF EXISTS shortest_path_routes;
+DROP TABLE IF EXISTS scenic_routes_buffer;
+DROP TABLE IF EXISTS scenic_routes_path;
+
+// ustawienie A*
+UPDATE roads_net SET algorithm = 'A*'
+
+// najkrotsza sciezka od startu do konca
+CREATE TEMP TABLE shortest_path_result AS
+SELECT * FROM roads_net
+WHERE NodeFrom = 1 AND NodeTo = 2;
+
+// najkrotsza sciezka z ustawieniem czy odcinek widokowy + dodana geometria poszczegolnych odcinkow
+CREATE TEMP TABLE shortest_path_routes AS
+SELECT spr.ArcRowid AS ArcRowid, spr.NodeFrom AS NodeFrom, spr.NodeTo AS NodeTo,
+spr.Cost AS Cost, r.length AS Length, r.Geometry AS Geometry, r.Name AS Name,
+CASE
+	WHEN r.class LIKE 'unclassified' THEN 1
+	ELSE 0
+	END ScenicRoute
+FROM shortest_path_result spr, roads r
+WHERE r.id = spr.ArcRowid;
+
+// w tej tabeli tymczasowej bedzie potrzebny nam tylko row zawierajacy geometrie calej najkrotszej trasy
+DELETE FROM shortest_path_result
+WHERE ArcRowid IS NOT NULL;
+
+// to chyba bedzie w aplikacji - suma dlugosci odcinkow widokowych
+CREATE TEMP scenic_routes_sum AS SELECT SUM(Length) AS ScenicRoutesSum FROM shortest_path;
+
+// odcinki widokowe wokol naszej trasy (statyczne 0.1 na razie)
+CREATE TEMP TABLE scenic_routes_buffer
+AS
+SELECT r.id AS Id, r.osm_id AS OsmId, r.node_from AS NodeFrom, r.node_to AS NodeTo, r.oneway_fromto AS OnewayFromTo,
+r.oneway_tofrom AS OnewayToFrom, r.length AS Length, r.cost AS Cost, r.geometry AS Geometry FROM roads r, shortest_path_result spr
+WHERE r.class LIKE 'unclassified' AND Distance(spr.geometry, r.geometry) < 0.1;
+
+// generalnie dostajemy wierzcholek z ktorym mamy sie teraz polaczyc w budowaniu trasy (statyczne WHERE rn.node_id = 1 w
+// nearest_route) - po tym trzeba wywolac a*
+WITH nearest_route AS
+(
+SELECT rn.node_id AS NodeId, rn.geometry AS NodeGeometry, srb.Id, srb.NodeFrom, srb.NodeTo, srb.OnewayFromTo, srb.OnewayToFrom,
+Min(Distance(rn.geometry, srb.geometry)) FROM scenic_routes_buffer srb, roads_nodes rn
+WHERE rn.node_id = 1
+),
+available_nodes AS
+(
+SELECT rn.node_id AS NodeId, rn.geometry AS Geometry
+FROM nearest_route nr, roads_nodes rn
+WHERE (rn.node_id = nr.NodeFrom AND nr.OnewayFromTo = 1)
+OR (rn.node_id = nr.NodeTo AND nr.OnewayToFrom = 1)
+)
+SELECT an.NodeId AS NodeId, Min(Distance(nr.NodeGeometry, an.Geometry))
+FROM nearest_route nr, available_nodes an;
