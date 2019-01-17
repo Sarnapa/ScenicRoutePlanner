@@ -1,7 +1,6 @@
 // usuniecie wszystkich tabel tymczasowych przed startem
 DROP TABLE IF EXISTS shortest_path_result;
 DROP TABLE IF EXISTS shortest_path_routes;
-DROP TABLE IF EXISTS scenic_routes_buffer;
 DROP TABLE IF EXISTS scenic_routes_path;
 
 // ustawienie A*
@@ -23,34 +22,76 @@ CASE
 FROM shortest_path_result spr, roads r
 WHERE r.id = spr.ArcRowid;
 
+// stworzenie tabeli scenic_routes_path na podstawie shortest_path_routes i usuniecie tych rzeczy
+CREATE TEMP TABLE scenic_routes_path AS
+SELECT * FROM shortest_path_routes
+LIMIT 1;
+
+DELETE FROM scenic_routes_path;
+
 // w tej tabeli tymczasowej bedzie potrzebny nam tylko row zawierajacy geometrie calej najkrotszej trasy
 DELETE FROM shortest_path_result
 WHERE ArcRowid IS NOT NULL;
 
-// to chyba bedzie w aplikacji - suma dlugosci odcinkow widokowych
-CREATE TEMP scenic_routes_sum AS SELECT SUM(Length) AS ScenicRoutesSum FROM shortest_path;
-
 // odcinki widokowe wokol naszej trasy (statyczne 0.1 na razie)
+DROP TABLE IF EXISTS scenic_routes_buffer;
 CREATE TEMP TABLE scenic_routes_buffer
 AS
 SELECT r.id AS Id, r.osm_id AS OsmId, r.node_from AS NodeFrom, r.node_to AS NodeTo, r.oneway_fromto AS OnewayFromTo,
-r.oneway_tofrom AS OnewayToFrom, r.length AS Length, r.cost AS Cost, r.geometry AS Geometry FROM roads r, shortest_path_result spr
+r.oneway_tofrom AS OnewayToFrom, r.length AS Length, r.cost AS Cost, r.geometry AS Geometry, r.name AS name
+FROM roads r, shortest_path_result spr
 WHERE r.class LIKE 'unclassified' AND Distance(spr.geometry, r.geometry) < 0.1;
 
-// generalnie dostajemy wierzcholek z ktorym mamy sie teraz polaczyc w budowaniu trasy (statyczne WHERE rn.node_id = 1 w
-// nearest_route) - po tym trzeba wywolac a*
-WITH nearest_route AS
+// Dla podanego startu (WHERE rn.node_id = 1) wyszukuje najblizszy odcinek widokowy z scenic_routes_buffer
+// i wyszukuje trase dla niego - na koncu dodajemy ten odcinek do trasy
+WITH nearest_scenic_route AS
 (
-SELECT rn.node_id AS NodeId, rn.geometry AS NodeGeometry, srb.Id, srb.NodeFrom, srb.NodeTo, srb.OnewayFromTo, srb.OnewayToFrom,
+SELECT rn.node_id AS NodeId, rn.geometry AS NodeGeometry, srb.Id AS ArcRowid,
+srb.NodeFrom AS NodeFrom, srb.NodeTo AS NodeTo, srb.OnewayFromTo AS OnewayFromTo, srb.OnewayToFrom AS OnewayToFrom,
+srb.Cost AS Cost, srb.Length AS Length, srb.Geometry AS Geometry, srb.Name AS Name,
 Min(Distance(rn.geometry, srb.geometry)) FROM scenic_routes_buffer srb, roads_nodes rn
 WHERE rn.node_id = 1
 ),
 available_nodes AS
 (
 SELECT rn.node_id AS NodeId, rn.geometry AS Geometry
-FROM nearest_route nr, roads_nodes rn
-WHERE (rn.node_id = nr.NodeFrom AND nr.OnewayFromTo = 1)
-OR (rn.node_id = nr.NodeTo AND nr.OnewayToFrom = 1)
+FROM nearest_scenic_route nsr, roads_nodes rn
+WHERE (rn.node_id = nsr.NodeFrom AND nsr.OnewayFromTo = 1)
+OR (rn.node_id = nsr.NodeTo AND nsr.OnewayToFrom = 1)
+),
+chosen_node AS
+(
+SELECT an.NodeId AS NodeId, Min(Distance(nsr.NodeGeometry, an.Geometry))
+FROM nearest_scenic_route nsr, available_nodes an
+),
+astar_result AS
+(
+SELECT rn.ArcRowid AS ArcRowid, rn.NodeFrom AS NodeFrom, rn.NodeTo AS NodeTo,
+rn.Cost AS Cost FROM roads_net rn, nearest_scenic_route nsr, chosen_node cn
+WHERE rn.ArcRowid IS NOT NULL AND rn.NodeFrom = nsr.NodeId AND rn.NodeTo = cn.NodeId
 )
-SELECT an.NodeId AS NodeId, Min(Distance(nr.NodeGeometry, an.Geometry))
-FROM nearest_route nr, available_nodes an;
+INSERT INTO scenic_routes_path
+SELECT ar.ArcRowid, ar.NodeFrom, ar.NodeTo,
+ar.Cost, r.length, r.geometry, r.name,
+CASE
+WHEN r.class LIKE 'unclassified' THEN 1
+	ELSE 0
+	END
+FROM astar_result ar LEFT JOIN roads r ON ar.ArcRowid = r.id
+UNION ALL
+SELECT nsr.ArcRowid, nsr.NodeFrom, nsr.NodeTo,
+nsr.Cost, nsr.length, nsr.geometry, nsr.name, 1
+FROM nearest_scenic_route nsr;
+
+// Usunięcie duplikatów - tylko ta metoda zadziałała z innych pozostałych na usuwanie duplikatów
+DELETE FROM scenic_routes_path
+WHERE ROWID IN
+(
+SELECT ROWID FROM scenic_routes_path AS srp
+WHERE srp.ArcRowid = scenic_routes_path.ArcRowid
+LIMIT -1 OFFSET 1
+);
+
+
+
+
