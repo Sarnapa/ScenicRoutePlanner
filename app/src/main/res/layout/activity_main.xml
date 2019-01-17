@@ -10,7 +10,9 @@ tools:context=".activity.MainActivity">
         android:id="@+id/content_frame_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:screenOrientation="portrait"/>
+        android:screenOrientation="portrait">
+
+    </FrameLayout>
 
     <ImageButton
         android:id="@+id/find_route_button"
@@ -23,5 +25,83 @@ tools:context=".activity.MainActivity">
         android:background="@null"
         android:src="@drawable/find_route_128px"
         android:contentDescription="@string/find_route"/>
+
+    <TableLayout
+        android:id="@+id/result"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="right"
+        android:showDividers="middle"
+        android:visibility="invisible">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/number_features_tile_text_color">
+
+            <TextView
+                android:id="@+id/distance"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
+                android:gravity="right"
+                android:text="Distance:"
+                tools:background="@color/number_features_tile_text_color" />
+
+            <TextView
+                android:id="@+id/distanceValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
+                android:text="TextView" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/number_features_tile_text_color">
+
+            <TextView
+                android:id="@+id/scenicDistance"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
+                android:gravity="right"
+                android:text="Scenic route distance:"
+                tools:background="@color/number_features_tile_text_color" />
+
+            <TextView
+                android:id="@+id/scenicDistanceValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
+                android:text="TextView" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/number_features_tile_text_color"
+            tools:layout_width="180dp">
+
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
+                android:gravity="right"
+                android:text="Time:"
+                tools:background="@color/number_features_tile_text_color" />
+
+            <TextView
+                android:id="@+id/timeValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
+                android:text="TextView" />
+        </TableRow>
+
+    </TableLayout>
 
 </RelativeLayout>

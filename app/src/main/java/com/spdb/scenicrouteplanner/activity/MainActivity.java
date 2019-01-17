@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 v.setVisibility(View.GONE);
+                findViewById(R.id.result).setVisibility(View.GONE);
                 Fragment routePlanner = new RoutePlannerActivity();
                 attachFragment(routePlanner, true, new FragmentManager.OnBackStackChangedListener() {
                     @Override
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
                         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
                             final ImageButton findRouteButton = findViewById(R.id.find_route_button);
                             findRouteButton.setVisibility(View.VISIBLE);
+                            findViewById(R.id.result).setVisibility(View.VISIBLE);
                         }
                     }
                 });

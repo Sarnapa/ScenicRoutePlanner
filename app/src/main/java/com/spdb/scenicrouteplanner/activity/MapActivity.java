@@ -13,7 +13,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.TextView;
 
+import com.spdb.scenicrouteplanner.R;
 import com.spdb.scenicrouteplanner.database.MazovianRoutesDbProvider;
 import com.spdb.scenicrouteplanner.database.modelDatabase.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.service.MapService;
@@ -24,8 +26,7 @@ import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.TileSystem;
 import org.osmdroid.views.MapView;
 
-public class MapActivity extends Fragment
-{
+public class MapActivity extends Fragment {
     // ==============================
     // Private fields
     // ==============================
@@ -37,17 +38,15 @@ public class MapActivity extends Fragment
     // Getters and Setters
     // ==============================
 
-    public static IMapService getMapService()
-    {
+    public static IMapService getMapService() {
         return mapService;
     }
-    public static MazovianRoutesDbProvider getDbProvider()
-    {
+
+    public static MazovianRoutesDbProvider getDbProvider() {
         return dbProvider;
     }
 
-    public MapActivity()
-    {
+    public MapActivity() {
         super();
 
         dbProvider = new MazovianRoutesDbProvider();
@@ -58,15 +57,13 @@ public class MapActivity extends Fragment
     // Override Fragment
     // ==============================
     @Override
-    public void onCreate(Bundle savedInstance)
-    {
+    public void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
     }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
-    {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mapView = new MapView(inflater.getContext());
 
         mapView.setMultiTouchControls(true);
@@ -93,28 +90,28 @@ public class MapActivity extends Fragment
 
         mapService.setMapOverlayManager(mapView.getOverlayManager());
 
-        mapView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
-        {
+        mapView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
-            public void onGlobalLayout()
-            {
-                try
-                {
+            public void onGlobalLayout() {
+                try {
                     BoundingBox startMapExtent = mapService.getStartMapExtent();
-                    if (startMapExtent != null)
-                    {
+                    if (startMapExtent != null) {
                         mapService.putAllEdgesOnMap();
                         mapView.zoomToBoundingBox(startMapExtent, false);
+
+                        MainActivity main = (MainActivity) getActivity();
+                        TextView distance = main.findViewById(R.id.distanceValue);
+                        TextView scenicDistance = main.findViewById(R.id.scenicDistanceValue);
+                        TextView time = main.findViewById(R.id.timeValue);
+                        distance.setText("DALEKO");
+                        scenicDistance.setText("DUŻO");
+                        time.setText("DŁUGO");
                     }
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     showAlertDialog(getContext(), com.spdb.scenicrouteplanner.R.string.dialog_alert_title,
                             com.spdb.scenicrouteplanner.R.string.put_route_on_map_error);
                     Log.d("MapActivity", e.getMessage());
-                }
-                finally
-                {
+                } finally {
                     mapView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 }
             }
@@ -124,8 +121,7 @@ public class MapActivity extends Fragment
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
 
         if (mapView != null)
@@ -133,8 +129,7 @@ public class MapActivity extends Fragment
     }
 
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
 
         if (mapView != null)
@@ -142,8 +137,7 @@ public class MapActivity extends Fragment
     }
 
     @Override
-    public void onDestroyView()
-    {
+    public void onDestroyView() {
         super.onDestroyView();
 
         mapView.onDetach();
@@ -152,24 +146,19 @@ public class MapActivity extends Fragment
     // ==============================
     // Private methods
     // ==============================
-    private void showAlertDialog(Context context, int titleId, int msgId)
-    {
+    private void showAlertDialog(Context context, int titleId, int msgId) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        try
-        {
+        try {
             builder.setTitle(getResources().getString(titleId))
                     .setMessage(getResources().getString(msgId))
-                    .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener()
-                    {
+                    .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.cancel();
                         }
                     })
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
-        }
-        catch (Resources.NotFoundException e)
-        {
+        } catch (Resources.NotFoundException e) {
             Log.d("ROUTE_PLANNER", "NOT FOUND RESOURCE: " + msgId);
         }
     }

@@ -47,8 +47,8 @@ public class AStar
             }
         };
 
-        //List<Node> openSet = new ArrayList<>();
-        PriorityQueue<Node> openSet = new PriorityQueue<>(100, comparator);
+        List<Node> openSet = new ArrayList<>();
+        //PriorityQueue<Node> openSet = new PriorityQueue<>(100, comparator);
         List<Node> closedSet = new ArrayList<>();
         Map<Node, List<Edge>> cameFrom = new HashMap<>();
 
@@ -60,8 +60,8 @@ public class AStar
         Node current;
 
         while (!openSet.isEmpty()) {
-            //current = getMinFScoreNode(openSet, fScore);
-            current = openSet.poll();
+            current = getMinFScoreNode(openSet, fScore);
+            //current = openSet.poll();
             if (current == dest) {
                 return reconstructPath(cameFrom, current);
             }
@@ -95,6 +95,7 @@ public class AStar
 
                 Double tentativeGScore = gScore.get(current) + tmpDist;
                 if (!openSet.contains(neighbour)) {
+                    //fScore.put(neighbour, Double.MAX_VALUE);
                     openSet.add(neighbour);
                 } else if (tentativeGScore >= gScore.get(neighbour)) {
                     continue;
