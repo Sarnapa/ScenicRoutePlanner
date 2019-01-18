@@ -181,7 +181,7 @@ public class MazovianRoutesDbProvider {
                 "SELECT r.id AS Id, r.osm_id AS OsmId, r.node_from AS NodeFrom, r.node_to AS NodeTo, r.oneway_fromto AS OnewayFromTo,\n" +
                 "r.oneway_tofrom AS OnewayToFrom, r.length AS Length, r.cost AS Cost, r.geometry AS Geometry, r.name AS Name\n" +
                 "FROM roads r, shortest_path_result spr\n" +
-                "WHERE r.class LIKE 'unclassified' AND Distance(spr.geometry, r.geometry) < %d;", bufferSize);
+                "WHERE r.class LIKE 'unclassified' AND Distance(spr.geometry, r.geometry) < %f;", bufferSize);
         db.execSQL(SQL_CREATE_SCENIC_ROUTES_BUFFER);
 
         db.setTransactionSuccessful();
@@ -372,7 +372,7 @@ public class MazovianRoutesDbProvider {
         }
         cursor.close();
 
-        return -1;
+        return res;
     }
 
     public Cursor getScenicRoutesPath()

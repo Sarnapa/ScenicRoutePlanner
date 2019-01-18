@@ -266,6 +266,9 @@ public class RoutePlannerActivity extends Fragment {
                         Log.d("ROUTE_PLANNER", "ERROR OCCURIED");
                         break;
                     }
+
+                    // Zwiększenie rozmiaru bufora
+                    buffer += BUFFER_INC;
                 }
             }
         }
