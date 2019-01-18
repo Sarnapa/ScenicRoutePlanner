@@ -272,7 +272,7 @@ public class MazovianRoutesDbProvider {
 
     // Łączy węzeł o podanym identyfikatorze z podanym końcowym węzłem.
     // Wyliczona trasa jest dodawana do tablicy wynikowej.
-    public void getPathToDestination(double nodeId, double endNodeId)
+    public void getPathToDestination(long nodeId, long endNodeId)
     {
         if (nodeId < 0)
             throw new IllegalArgumentException("MazovianRoutesDbProvider.getPathToDestination - invalid nodeId");
