@@ -4,7 +4,7 @@ import org.osmdroid.util.BoundingBox;
 
 public interface IMapService
 {
-    BoundingBox getStartMapExtent();
+    BoundingBox getStartMapExtent(long startNodeId, long endNodeId);
     void putAllEdgesOnMap();
     void clear();
 }

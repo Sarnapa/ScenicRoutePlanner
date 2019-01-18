@@ -13,6 +13,9 @@ final class RoutesDbContract
         public static final String GEOMETRY_COL_NAME = "geometry";
     }
 
+    // ==============================
+    // Tabele - model
+    // ==============================
     static class NodesTable implements BaseColumns
     {
         static final String TABLE_NAME = "nodes";
@@ -43,9 +46,14 @@ final class RoutesDbContract
         static final String IS_SCENIC_ROUTE_CHECK_NAME = "is_scenic_route_chk";
     }
 
+    // ==============================
+    // Nazwy kolumn
+    // ==============================
     static final String LENGTH_COL_NAME = "len";
 
+    // ==============================
     // Metadane przestrzenne
+    // ==============================
     static final String GEOMETRY_COLUMNS_TABLE_NAME = "geometry_columns";
     static final String SPATIAL_REF_SYS_TABLE_NAME = "spatial_ref_sys";
 }

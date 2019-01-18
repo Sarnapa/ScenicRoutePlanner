@@ -19,6 +19,8 @@ import com.spdb.scenicrouteplanner.database.MazovianRoutesDbProvider;
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
 import com.spdb.scenicrouteplanner.service.OSMService;
 
+import java.util.Locale;
+
 public class RoutePlannerActivity extends Fragment {
     // ==============================
     // Private fields
@@ -76,23 +78,29 @@ public class RoutePlannerActivity extends Fragment {
         findRoutePlannerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Pobranie danych wejściowych do algorytmu.
                 String startText = startLocationEditText.getText().toString();
                 String destText = destinationEditText.getText().toString();
                 String scenicRouteMinText = scenicRouteMinEditText.getText().toString();
 
+                // Pobranie modułu do pracy z bazą danych.
                 MazovianRoutesDbProvider dbProvider = MapActivity.getDbProvider();
+                // Wyczyszczenie mapy.
                 MapActivity.getMapService().clear();
 
                 if (dbProvider.isDbAvailable()) {
                     if (!(startText.isEmpty() || destText.isEmpty() || scenicRouteMinText.isEmpty())) {
-                        double scenicRouteMin = Double.parseDouble(scenicRouteMinText);
+                        // km -> m
+                        double scenicRouteMin = Double.parseDouble(scenicRouteMinText) * 1000;
 
+                        // Pobranie współrzędnych podanych lokalizacji, korzystając z REST serwisu.
                         GeoCoords startCoords = osmService.getPlaceCoords(startText);
                         GeoCoords destCoords = osmService.getPlaceCoords(destText);
                         if (startCoords != null && destCoords != null) {
                             Log.d("ROUTE_PLANNER", "COORDS READY");
                             try
                             {
+                                // Pobranie identyfikatorów węzłów, które odpowiadają podanym lokalizacjom.
                                 long startNodeId = dbProvider.getClosestNodeId(startCoords);
                                 long endNodeId = dbProvider.getClosestNodeId(destCoords);
                                 Log.d("ROUTE_PLANNER", "START NODE:" + startNodeId);
@@ -100,8 +108,9 @@ public class RoutePlannerActivity extends Fragment {
 
                                 if (startNodeId >= 0 && endNodeId >= 0)
                                 {
-                                    dbProvider.calculateShortestPath(startNodeId, endNodeId);
-                                    Log.d("ROUTE_PLANNER", "SHORTEST PATH FOUND WITH ASTAR");
+                                    boolean success = findScenicRoutesPath(dbProvider, startNodeId, endNodeId, scenicRouteMin);
+                                    if (success)
+                                        MapActivity.setScenicRoutesPathStats(dbProvider.getScenicRoutesPathStats());
                                     getFragmentManager().popBackStack();
                                 }
                                 else
@@ -117,7 +126,6 @@ public class RoutePlannerActivity extends Fragment {
                                         Log.d("ROUTE_PLANNER", "NOT FOUND DESTINATION - IN DB");
                                     }
                                 }
-
                             }
                             catch (Exception e)
                             {
@@ -182,6 +190,97 @@ public class RoutePlannerActivity extends Fragment {
     // ==============================
     // Private methods
     // ==============================
+    private boolean findScenicRoutesPath(MazovianRoutesDbProvider dbProvider, long startNodeId, long endNodeId,
+                                      double scenicRouteMin)
+    {
+        // Stałe algorytmu
+        final double BUFFER_INC = 0.5f;
+
+        // Zmienne lokalne algorytmu
+        double buffer = 0.1f;
+        long lastStartBufferSize = 0;
+        double currentScenicRoutesLength;
+
+        // Przygotowanie bazy do pracy z algorytmem.
+        dbProvider.prepareDb();
+        MapActivity.setScenicRoutesPathStats(null);
+
+        // Wyszukanie optymalnej trasy dla podanych lokalizacji.
+        dbProvider.getShortestPath(startNodeId, endNodeId);
+        Log.d("ROUTE_PLANNER", "SHORTEST PATH FOUND");
+
+        currentScenicRoutesLength = dbProvider.getShortestPathScenicRoutesSumLength();
+        // Czy optymalna trasa spełnia warunek minimalnej długości odcinków widokowych?
+        if (currentScenicRoutesLength >= scenicRouteMin)
+        {
+            Log.d("ROUTE_PLANNER", "SHORTEST PATH HAVE MET SCENIC ROUTES CONDITION");
+            dbProvider.moveShortestPathToScenicRoutesPath();
+        }
+        // Nie spełnia, ale nie ma także błędu
+        else if (currentScenicRoutesLength != -1)
+        {
+            Log.d("ROUTE_PLANNER", "SHORTEST PATH HAVE NOT MET SCENIC ROUTES CONDITION");
+            // Dopóki nie spełnimy warunku minimalnej długości odcinków widokowych
+            while(currentScenicRoutesLength < scenicRouteMin) {
+                // Pobranie bufora odcinków widokowych, znajdujących się
+                // w odległości nie większej niż zdefiniowana.
+                dbProvider.getScenicRoutesBuffer(buffer);
+
+                long currentStartBufferSize = dbProvider.getScenicRoutesBufferSize();
+                Log.d("ROUTE_PLANNER", String.format(Locale.US, "BUFFER SIZE - %d", currentStartBufferSize));
+                // Czy przestaliśmy pobierać nowe odcinki widokowe?
+                if (currentStartBufferSize == lastStartBufferSize) {
+                    Log.d("ROUTE_PLANNER", String.format("GET THE SAME BUFFER SIZE AGAIN"));
+                    return false;
+                }
+                lastStartBufferSize = currentStartBufferSize;
+
+                // Czy sumaryczna długość odcinków widokowych w buforze spełnia zadane wymaganie?
+                if (dbProvider.getScenicRoutesBufferScenicRoutesSumLength() >= scenicRouteMin)
+                {
+                    long currentBufferSize = currentStartBufferSize;
+                    long currentNodeId = startNodeId;
+                    Log.d("ROUTE_PLANNER", String.format("START_NODE - %d", currentNodeId));
+                    currentScenicRoutesLength = 0.0f;
+
+                    dbProvider.startTransaction();
+                    while (currentBufferSize > 0) {
+                        currentNodeId = dbProvider.getPathToNearestScenicRoute(currentNodeId);
+                        Log.d("ROUTE_PLANNER", String.format("CURRENT_NODE - %d", currentNodeId));
+
+                        currentScenicRoutesLength = dbProvider.getScenicRoutesPathScenicRoutesSumLength();
+                        // Warunek minimalnej dlugości odcinków widokowych spełniony
+                        if (currentScenicRoutesLength >= scenicRouteMin)
+                        {
+                            Log.d("ROUTE_PLANNER", String.format("CURRENT PATH HAVE MET SCENIC ROUTES CONDITION"));
+                            // Docieramy do celu po optymalnej trasie.
+                            dbProvider.getPathToDestination(currentNodeId, endNodeId);
+                            break;
+                        }
+                        currentBufferSize = dbProvider.getScenicRoutesBufferSize();
+                    }
+                    dbProvider.commitTransaction();
+
+                    // Jeśli błąd
+                    if (currentNodeId == -1 || currentBufferSize == -1 || currentScenicRoutesLength == -1) {
+                        Log.d("ROUTE_PLANNER", "ERROR OCCURIED");
+                        break;
+                    }
+                }
+            }
+        }
+        if (currentScenicRoutesLength >= scenicRouteMin)
+        {
+            Log.d("ROUTE_PLANNER", "SCENIC ROUTES PATH FOUND");
+            return true;
+        }
+        else
+        {
+            Log.d("ROUTE_PLANNER", "SCENIC ROUTES PATH NOT FOUND");
+            return false;
+        }
+    }
+
 
     private void showAlertDialog(Context context, int titleId, int msgId)
     {

@@ -26,7 +26,6 @@ WHERE r.id = spr.ArcRowid;
 CREATE TEMP TABLE scenic_routes_path AS
 SELECT * FROM shortest_path_routes
 LIMIT 1;
-
 DELETE FROM scenic_routes_path;
 
 // w tej tabeli tymczasowej bedzie potrzebny nam tylko row zawierajacy geometrie calej najkrotszej trasy
@@ -38,7 +37,7 @@ DROP TABLE IF EXISTS scenic_routes_buffer;
 CREATE TEMP TABLE scenic_routes_buffer
 AS
 SELECT r.id AS Id, r.osm_id AS OsmId, r.node_from AS NodeFrom, r.node_to AS NodeTo, r.oneway_fromto AS OnewayFromTo,
-r.oneway_tofrom AS OnewayToFrom, r.length AS Length, r.cost AS Cost, r.geometry AS Geometry, r.name AS name
+r.oneway_tofrom AS OnewayToFrom, r.length AS Length, r.cost AS Cost, r.geometry AS Geometry, r.name AS Name
 FROM roads r, shortest_path_result spr
 WHERE r.class LIKE 'unclassified' AND Distance(spr.geometry, r.geometry) < 0.1;
 

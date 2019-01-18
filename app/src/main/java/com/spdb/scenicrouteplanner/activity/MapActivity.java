@@ -18,6 +18,7 @@ import android.widget.TextView;
 import com.spdb.scenicrouteplanner.R;
 import com.spdb.scenicrouteplanner.database.MazovianRoutesDbProvider;
 import com.spdb.scenicrouteplanner.database.modelDatabase.RoutesDbProvider;
+import com.spdb.scenicrouteplanner.database.structures.ScenicRoutesPathStats;
 import com.spdb.scenicrouteplanner.service.MapService;
 import com.spdb.scenicrouteplanner.service.interfaces.IMapService;
 
@@ -26,6 +27,8 @@ import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.TileSystem;
 import org.osmdroid.views.MapView;
 
+import java.util.Locale;
+
 public class MapActivity extends Fragment {
     // ==============================
     // Private fields
@@ -33,6 +36,7 @@ public class MapActivity extends Fragment {
     private MapView mapView;
     private static MapService mapService;
     private static MazovianRoutesDbProvider dbProvider;
+    private static ScenicRoutesPathStats scenicRoutesPathStats;
 
     // ==============================
     // Getters and Setters
@@ -44,6 +48,11 @@ public class MapActivity extends Fragment {
 
     public static MazovianRoutesDbProvider getDbProvider() {
         return dbProvider;
+    }
+
+    public static void setScenicRoutesPathStats (ScenicRoutesPathStats value)
+    {
+        scenicRoutesPathStats = value;
     }
 
     public MapActivity() {
@@ -94,18 +103,21 @@ public class MapActivity extends Fragment {
             @Override
             public void onGlobalLayout() {
                 try {
-                    BoundingBox startMapExtent = mapService.getStartMapExtent();
-                    if (startMapExtent != null) {
-                        mapService.putAllEdgesOnMap();
-                        mapView.zoomToBoundingBox(startMapExtent, false);
+                    if (scenicRoutesPathStats != null) {
+                        BoundingBox startMapExtent = mapService.getStartMapExtent(scenicRoutesPathStats.getStartNodeId(),
+                                scenicRoutesPathStats.getEndNodeId());
+                        if (startMapExtent != null) {
+                            mapService.putAllEdgesOnMap();
+                            mapView.zoomToBoundingBox(startMapExtent, false);
 
-                        MainActivity main = (MainActivity) getActivity();
-                        TextView distance = main.findViewById(R.id.distanceValue);
-                        TextView scenicDistance = main.findViewById(R.id.scenicDistanceValue);
-                        TextView time = main.findViewById(R.id.timeValue);
-                        distance.setText("DALEKO");
-                        scenicDistance.setText("DUŻO");
-                        time.setText("DŁUGO");
+                            MainActivity main = (MainActivity) getActivity();
+                            TextView distance = main.findViewById(R.id.distanceValue);
+                            TextView scenicDistance = main.findViewById(R.id.scenicDistanceValue);
+                            TextView time = main.findViewById(R.id.timeValue);
+                            distance.setText(String.format(Locale.US, "%f", scenicRoutesPathStats.getLength()));
+                            scenicDistance.setText(String.format(Locale.US, "%f", scenicRoutesPathStats.getScenicRoutesLength()));
+                            time.setText(String.format(Locale.US, "%f", scenicRoutesPathStats.getCost()));
+                        }
                     }
                 } catch (Exception e) {
                     showAlertDialog(getContext(), com.spdb.scenicrouteplanner.R.string.dialog_alert_title,

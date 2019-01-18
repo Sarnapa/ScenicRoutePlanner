@@ -5,11 +5,8 @@ import android.graphics.Color;
 import android.util.Log;
 
 import com.spdb.scenicrouteplanner.database.MazovianRoutesDbProvider;
-import com.spdb.scenicrouteplanner.database.modelDatabase.RoutesDbProvider;
-import com.spdb.scenicrouteplanner.database.structures.PathResult;
+import com.spdb.scenicrouteplanner.database.structures.ScenicRoutesPathRow;
 import com.spdb.scenicrouteplanner.lib.GeoCoords;
-import com.spdb.scenicrouteplanner.model.Edge;
-import com.spdb.scenicrouteplanner.model.Node;
 import com.spdb.scenicrouteplanner.service.interfaces.IMapService;
 
 import org.osmdroid.util.BoundingBox;
@@ -57,41 +54,25 @@ public class MapService implements IMapService
     // Override IOSMService
     // ==============================
     @Override
-    public BoundingBox getStartMapExtent()
+    public BoundingBox getStartMapExtent(long startNodeId, long endNodeId)
     {
-        Cursor resultCursor = getResultCursor();
-        if (mapOverlayManager != null && resultCursor != null) {
-            try
-            {
-                if(resultCursor.moveToFirst()) {
-                    PathResult res = dbProvider.getPathResult(resultCursor);
+        if (mapOverlayManager != null)
+        {
+            if (startNodeId >= 0 && endNodeId >= 0) {
+                start = dbProvider.getNodeGeoCoords(startNodeId);
+                end = dbProvider.getNodeGeoCoords(endNodeId);
 
-                    if (res != null) {
-                        long startNodeId = res.getNodeFrom();
-                        long endNodeId = res.getNodeTo();
+                if (start != null && end != null) {
+                    double north = Math.max(start.getLatitude(), end.getLatitude());
+                    double south = Math.min(start.getLatitude(), end.getLatitude());
+                    double east = Math.max(start.getLongitude(), end.getLongitude());
+                    double west = Math.min(start.getLongitude(), end.getLongitude());
 
-                        if (startNodeId >= 0 && endNodeId >= 0) {
-                            start = dbProvider.getNodeGeoCoords(startNodeId);
-                            end = dbProvider.getNodeGeoCoords(endNodeId);
+                    putStartEndNodeOnMap();
 
-                            if (start != null && end != null) {
-                                double north = Math.max(start.getLatitude(), end.getLatitude());
-                                double south = Math.min(start.getLatitude(), end.getLatitude());
-                                double east = Math.max(start.getLongitude(), end.getLongitude());
-                                double west = Math.min(start.getLongitude(), end.getLongitude());
-
-                                putStartEndNodeOnMap();
-
-                                return new BoundingBox(north + MAP_BUFFER, east + MAP_BUFFER,
-                                        south - MAP_BUFFER, west - MAP_BUFFER);
-                            }
-                        }
-                    }
+                    return new BoundingBox(north + MAP_BUFFER, east + MAP_BUFFER,
+                            south - MAP_BUFFER, west - MAP_BUFFER);
                 }
-            }
-            finally
-            {
-                resultCursor.close();
             }
         }
         return null;
@@ -105,10 +86,9 @@ public class MapService implements IMapService
         {
             try {
                 List<Polyline> polylines = new ArrayList<>();
-                // Pierwszy wynik to cała droga
-                resultCursor.moveToNext();
-                while (resultCursor.moveToNext()) {
-                    PathResult edgeResult = dbProvider.getPathResult(resultCursor);
+                while (resultCursor.moveToNext())
+                {
+                    ScenicRoutesPathRow edgeResult = dbProvider.getScenicRoutesPathRow(resultCursor);
                     long startNodeId = edgeResult.getNodeFrom();
                     long endNodeId = edgeResult.getNodeTo();
 
@@ -127,22 +107,11 @@ public class MapService implements IMapService
                         }
                         polyline.setPoints(routeGeoPoints);
 
-                    /*if (e.isTourRoute()) {
-                        if (e.getWayInfo().isScenicRoute())
-                            polyline.setColor(EdgeColor.SCENIC_TOUR_ROUTE_COLOR);
-                        else
-                            polyline.setColor(EdgeColor.STANDARD_TOUR_ROUTE_COLOR);
-                    } else {
-                        if (e.getWayInfo().isScenicRoute())
+                        if (edgeResult.isScenicRoute())
                             polyline.setColor(EdgeColor.SCENIC_ROUTE_COLOR);
                         else
                             polyline.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
-                    }*/
 
-                        //if (dbProvider.isScenicRouteByNodes(startNodeId, endNodeId))
-                            //polyline.setColor(EdgeColor.SCENIC_ROUTE_COLOR);
-                        //else
-                        polyline.setColor(EdgeColor.STANDARD_ROUTE_COLOR);
 
                         polylines.add(polyline);
                     }
@@ -173,7 +142,7 @@ public class MapService implements IMapService
     {
         if (dbProvider.isDbAvailable())
         {
-            return dbProvider.getShortestPath();
+            return dbProvider.getScenicRoutesPath();
         }
         return null;
     }
@@ -218,8 +187,6 @@ public class MapService implements IMapService
 
     private static final class EdgeColor {
         final static int STANDARD_ROUTE_COLOR = Color.BLACK;
-        final static int SCENIC_ROUTE_COLOR = Color.BLUE;
-        final static int STANDARD_TOUR_ROUTE_COLOR = Color.RED;
-        final static int SCENIC_TOUR_ROUTE_COLOR = Color.MAGENTA;
+        final static int SCENIC_ROUTE_COLOR = Color.RED;
     }
 }

@@ -1,28 +1,22 @@
 package com.spdb.scenicrouteplanner.database.structures;
 
-public class PathResult
+public class ScenicRoutesPathRow
 {
     // ==============================
     // Private fields
     // ==============================
-    private String algorithm;
     private Long arcRowid;
     private long nodeFrom;
     private long nodeTo;
     private double cost;
+    private double length;
     private String geometry;
     private String name;
+    private boolean isScenicRoute;
 
     // ==============================
-    // Private fields
+    // Getters and Setters
     // ==============================
-    public String getAlgorithm() {
-        return algorithm;
-    }
-
-    public void setAlgorithm(String algorithm) {
-        this.algorithm = algorithm;
-    }
 
     public Long getArcRowid() {
         return arcRowid;
@@ -36,7 +30,7 @@ public class PathResult
         return nodeFrom;
     }
 
-    public void setNodeFrom(Long nodeFrom) {
+    public void setNodeFrom(long nodeFrom) {
         this.nodeFrom = nodeFrom;
     }
 
@@ -44,7 +38,7 @@ public class PathResult
         return nodeTo;
     }
 
-    public void setNodeTo(Long nodeTo) {
+    public void setNodeTo(long nodeTo) {
         this.nodeTo = nodeTo;
     }
 
@@ -54,6 +48,14 @@ public class PathResult
 
     public void setCost(double cost) {
         this.cost = cost;
+    }
+
+    public double getLength() {
+        return length;
+    }
+
+    public void setLength(double length) {
+        this.length = length;
     }
 
     public String getGeometry() {
@@ -72,20 +74,29 @@ public class PathResult
         this.name = name;
     }
 
+    public boolean isScenicRoute() {
+        return isScenicRoute;
+    }
+
+    public void setScenicRoute(boolean scenicRoute) {
+        isScenicRoute = scenicRoute;
+    }
+
     // ==============================
     // Constructors
     // ==============================
-    public PathResult() {}
+    public ScenicRoutesPathRow() {}
 
-    public PathResult(String algorithm, Long arcRowid, Long nodeFrom, Long nodeTo, double cost,
-                      String geometry, String name)
+    public ScenicRoutesPathRow(Long arcRowid, long nodeFrom, long nodeTo, double cost, double length,
+                               String geometry, String name, boolean isScenicRoute)
     {
-        this.algorithm = algorithm;
         this.arcRowid = arcRowid;
         this.nodeFrom = nodeFrom;
         this.nodeTo = nodeTo;
         this.cost = cost;
+        this.length = length;
         this.geometry = geometry;
         this.name = name;
+        this.isScenicRoute = isScenicRoute;
     }
 }
