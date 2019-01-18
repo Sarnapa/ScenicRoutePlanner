@@ -194,10 +194,11 @@ public class RoutePlannerActivity extends Fragment {
                                       double scenicRouteMin)
     {
         // Stałe algorytmu
-        final double BUFFER_INC = 0.5f;
+        final double BUFFER_INC = 0.1f;
+        final double BUFFER_EXTRA = 1.1f;
 
         // Zmienne lokalne algorytmu
-        double buffer = 0.1f;
+        double buffer = 0.05f;
         long lastStartBufferSize = 0;
         double currentScenicRoutesLength;
 
@@ -220,15 +221,13 @@ public class RoutePlannerActivity extends Fragment {
         else if (currentScenicRoutesLength != -1)
         {
             Log.d("ROUTE_PLANNER", "SHORTEST PATH HAVE NOT MET SCENIC ROUTES CONDITION");
-            // Dopóki nie spełnimy warunku minimalnej długości odcinków widokowych
-            while(currentScenicRoutesLength < scenicRouteMin) {
+
+            double scenicRoutesLengthInBuffer = 0.0f;
+            while (scenicRoutesLengthInBuffer < scenicRouteMin * BUFFER_EXTRA)
+            {
                 // Pobranie bufora odcinków widokowych, znajdujących się
                 // w odległości nie większej niż zdefiniowana.
                 dbProvider.getScenicRoutesBuffer(buffer);
-
-                // Posprzątanie z tabeli wynikowej dotychczasowego wyniku.
-                dbProvider.cleanScenicRoutesPath();
-
                 long currentStartBufferSize = dbProvider.getScenicRoutesBufferSize();
                 Log.d("ROUTE_PLANNER", String.format(Locale.US, "BUFFER SIZE - %d", currentStartBufferSize));
                 // Czy przestaliśmy pobierać nowe odcinki widokowe?
@@ -237,41 +236,44 @@ public class RoutePlannerActivity extends Fragment {
                     return false;
                 }
                 lastStartBufferSize = currentStartBufferSize;
+                scenicRoutesLengthInBuffer = dbProvider.getScenicRoutesBufferScenicRoutesSumLength();
+                // Zwiększenie rozmiaru bufora
+                buffer += BUFFER_INC;
+            }
 
-                // Czy sumaryczna długość odcinków widokowych w buforze spełnia zadane wymaganie?
-                if (dbProvider.getScenicRoutesBufferScenicRoutesSumLength() >= scenicRouteMin)
-                {
-                    long currentBufferSize = currentStartBufferSize;
-                    long currentNodeId = startNodeId;
-                    Log.d("ROUTE_PLANNER", String.format("START_NODE - %d", currentNodeId));
-                    currentScenicRoutesLength = 0.0f;
+            // Dopóki nie spełnimy warunku minimalnej długości odcinków widokowych
+            while(currentScenicRoutesLength < scenicRouteMin)
+            {
+                // Posprzątanie z tabeli wynikowej dotychczasowego wyniku.
+                dbProvider.cleanScenicRoutesPath();
 
-                    dbProvider.startTransaction();
-                    while (currentBufferSize > 0) {
-                        currentNodeId = dbProvider.getPathToNearestScenicRoute(currentNodeId);
-                        Log.d("ROUTE_PLANNER", String.format("CURRENT_NODE - %d", currentNodeId));
+                long currentBufferSize = lastStartBufferSize;
+                long currentNodeId = startNodeId;
+                Log.d("ROUTE_PLANNER", String.format("START_NODE - %d", currentNodeId));
+                currentScenicRoutesLength = 0.0f;
 
-                        currentScenicRoutesLength = dbProvider.getScenicRoutesPathScenicRoutesSumLength();
-                        // Warunek minimalnej dlugości odcinków widokowych spełniony
-                        if (currentScenicRoutesLength >= scenicRouteMin)
-                        {
-                            Log.d("ROUTE_PLANNER", String.format("CURRENT PATH HAVE MET SCENIC ROUTES CONDITION"));
-                            // Docieramy do celu po optymalnej trasie.
-                            dbProvider.getPathToDestination(currentNodeId, endNodeId);
-                            break;
-                        }
-                        currentBufferSize = dbProvider.getScenicRoutesBufferSize();
-                    }
-                    dbProvider.commitTransaction();
+                dbProvider.startTransaction();
+                while (currentBufferSize > 0) {
+                    currentNodeId = dbProvider.getPathToNearestScenicRoute(currentNodeId);
+                    Log.d("ROUTE_PLANNER", String.format("CURRENT_NODE - %d", currentNodeId));
 
-                    // Jeśli błąd
-                    if (currentNodeId == -1 || currentBufferSize == -1 || currentScenicRoutesLength == -1) {
-                        Log.d("ROUTE_PLANNER", "ERROR OCCURIED");
+                    currentScenicRoutesLength = dbProvider.getScenicRoutesPathScenicRoutesSumLength();
+                    // Warunek minimalnej dlugości odcinków widokowych spełniony
+                    if (currentScenicRoutesLength >= scenicRouteMin)
+                    {
+                        Log.d("ROUTE_PLANNER", String.format("CURRENT PATH HAVE MET SCENIC ROUTES CONDITION"));
+                        // Docieramy do celu po optymalnej trasie.
+                        dbProvider.getPathToDestination(currentNodeId, endNodeId);
                         break;
                     }
+                    currentBufferSize = dbProvider.getScenicRoutesBufferSize();
+                }
+                dbProvider.commitTransaction();
 
-                    // Zwiększenie rozmiaru bufora
-                    buffer += BUFFER_INC;
+                // Jeśli błąd
+                if (currentNodeId == -1 || currentBufferSize == -1 || currentScenicRoutesLength == -1) {
+                    Log.d("ROUTE_PLANNER", "ERROR OCCURIED");
+                    break;
                 }
             }
         }
