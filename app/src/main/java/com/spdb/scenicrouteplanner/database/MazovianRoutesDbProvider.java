@@ -45,13 +45,11 @@ public class MazovianRoutesDbProvider {
         return FileUtils.fileExists(DATABASE_PATH) && db != null;
     }
 
-    public void startTransaction()
-    {
+    public void startTransaction() {
         db.beginTransaction();
     }
 
-    public void commitTransaction()
-    {
+    public void commitTransaction() {
         db.setTransactionSuccessful();
         db.endTransaction();
     }
@@ -67,8 +65,7 @@ public class MazovianRoutesDbProvider {
     // Przygotowanie bazy danych przed zastosowanie algorytmu do wyszukania danej trasy.
     // Polega na usunięciu istniejących wcześniej baz tymczasowych, które zawierały wynik poprzedniego wyszukania.
     // Także ustawia algorytm wyszukiwania optymalnej trasy na algorytm A*.
-    public void prepareDb()
-    {
+    public void prepareDb() {
         final String SQL_DROP_SHORTEST_PATH_RESULT_TABLE = getDropTableSQL(
                 MazovianRoutesDbContract.ShortestPathResultTable.TABLE_NAME);
         final String SQL_DROP_SHORTEST_PATH_ROUTES_TABLE = getDropTableSQL(
@@ -84,8 +81,7 @@ public class MazovianRoutesDbProvider {
     }
 
     // Ustawienie algorytmu wyszukiwania optymalnej trasy na algorytm A*.
-    private void setAStarAlgorithm()
-    {
+    private void setAStarAlgorithm() {
         db.beginTransaction();
 
         final String SQL_SET_ASTAR = String.format(Locale.US, "UPDATE %s SET %s = 'A*'",
@@ -99,8 +95,7 @@ public class MazovianRoutesDbProvider {
 
     // Wyliczenie optymalnej trasy, z której będziemy korzystać na etapie ustalania trasy,
     // która uwzględnia warunek minimalnej długości odcinków widokowych.
-    public void getShortestPath(long startNodeId, long endNodeId)
-    {
+    public void getShortestPath(long startNodeId, long endNodeId) {
         if (startNodeId < 0)
             throw new IllegalArgumentException("MazovianRoutesDbProvider.calculateShortestPath - invalid startNodeId");
 
@@ -112,8 +107,8 @@ public class MazovianRoutesDbProvider {
         // Wyliczenie optymalnej trasy
         final String SQL_CREATE_SHORTEST_PATH_RESULT = String.format(Locale.US,
                 "CREATE TEMP TABLE shortest_path_result AS\n" +
-                "SELECT * FROM roads_net\n" +
-                "WHERE NodeFrom = %d AND NodeTo = %d;",
+                        "SELECT * FROM roads_net\n" +
+                        "WHERE NodeFrom = %d AND NodeTo = %d;",
                 startNodeId, endNodeId);
         db.execSQL(SQL_CREATE_SHORTEST_PATH_RESULT);
 
@@ -121,28 +116,28 @@ public class MazovianRoutesDbProvider {
         // rezultatem algorytmu) i oznaczenie, ktory jest widokowy.
         final String SQL_CREATE_SHORTEST_PATH_ROUTES = String.format(Locale.US,
                 "CREATE TEMP TABLE shortest_path_routes AS\n" +
-                "SELECT spr.ArcRowid AS ArcRowid, spr.NodeFrom AS NodeFrom, spr.NodeTo AS NodeTo,\n" +
-                "spr.Cost AS Cost, r.length AS Length, r.Geometry AS Geometry, r.Name AS Name,\n" +
-                "CASE\n" +
-                "\tWHEN r.class LIKE 'unclassified' THEN 1\n" +
-                "\tELSE 0\n" +
-                "\tEND ScenicRoute\n" +
-                "FROM shortest_path_result spr, roads r\n" +
-                "WHERE r.id = spr.ArcRowid;");
+                        "SELECT spr.ArcRowid AS ArcRowid, spr.NodeFrom AS NodeFrom, spr.NodeTo AS NodeTo,\n" +
+                        "spr.Cost AS Cost, r.length AS Length, r.Geometry AS Geometry, r.Name AS Name,\n" +
+                        "CASE\n" +
+                        "\tWHEN r.class LIKE 'unclassified' THEN 1\n" +
+                        "\tELSE 0\n" +
+                        "\tEND ScenicRoute\n" +
+                        "FROM shortest_path_result spr, roads r\n" +
+                        "WHERE r.id = spr.ArcRowid;");
         db.execSQL(SQL_CREATE_SHORTEST_PATH_ROUTES);
 
         // Przygotowanie tabeli, zawierającej ostateczną trasę, z uwzględnieniemm warunku odcinków widokowych.
         final String SQL_CREATE_SCENIC_ROUTES_PATH = String.format(Locale.US,
                 "CREATE TEMP TABLE scenic_routes_path AS\n" +
-                "SELECT * FROM shortest_path_routes\n" +
-                "LIMIT 1;\n" +
-                "DELETE FROM scenic_routes_path;\n");
+                        "SELECT * FROM shortest_path_routes\n" +
+                        "LIMIT 1;\n" +
+                        "DELETE FROM scenic_routes_path;\n");
         db.execSQL(SQL_CREATE_SCENIC_ROUTES_PATH);
 
         // Przygotowanie tabeli, która zawiera wyłącznie 1 wiersz, podsumowujący optymalną trasę.
         final String SQL_PREPARE_SHORTEST_PATH_RESULT = String.format(Locale.US,
                 "DELETE FROM shortest_path_result\n" +
-                "WHERE ArcRowid IS NOT NULL;");
+                        "WHERE ArcRowid IS NOT NULL;");
         db.execSQL(SQL_PREPARE_SHORTEST_PATH_RESULT);
 
         db.setTransactionSuccessful();
@@ -150,8 +145,7 @@ public class MazovianRoutesDbProvider {
     }
 
     // Jeśli spełniony jest warunek odcinków widokowych przez optymalną trasę - przenosimy ją do wynikowej tabeli.
-    public void moveShortestPathToScenicRoutesPath()
-    {
+    public void moveShortestPathToScenicRoutesPath() {
         db.beginTransaction();
 
         final String SQL_DROP_SCENIC_ROUTES_PATH_TABLE = getDropTableSQL(
@@ -161,6 +155,18 @@ public class MazovianRoutesDbProvider {
         final String SQL_RENAME_SHORTEST_PATH_ROUTES = String.format(Locale.US,
                 "ALTER TABLE shortest_path_routes RENAME TO scenic_routes_path;");
         db.execSQL(SQL_RENAME_SHORTEST_PATH_ROUTES);
+
+        db.setTransactionSuccessful();
+        db.endTransaction();
+    }
+
+    public void cleanScenicRoutesPath()
+    {
+        db.beginTransaction();
+
+        final String SQL_DELETE_SCENIC_ROUTES_PATH = String.format(Locale.US,
+                "DELETE FROM scenic_routes_path");
+        db.execSQL(SQL_DELETE_SCENIC_ROUTES_PATH);
 
         db.setTransactionSuccessful();
         db.endTransaction();
@@ -190,7 +196,7 @@ public class MazovianRoutesDbProvider {
 
     // Łączenie podanego punktu z najbliższym odcinkiem widokowym.
     // Zwraca identyfikator węzła, który jest końcem dotychczas wyliczonej trasy.
-    public long getPathToNearestScenicRoute(double nodeId)
+    public long getPathToNearestScenicRoute(long nodeId)
     {
         if (nodeId < 0)
             throw new IllegalArgumentException("MazovianRoutesDbProvider.getTourToNearestScenicRoute - invalid nodeId");
@@ -202,7 +208,7 @@ public class MazovianRoutesDbProvider {
                 "srb.NodeFrom AS NodeFrom, srb.NodeTo AS NodeTo, srb.OnewayFromTo AS OnewayFromTo, srb.OnewayToFrom AS OnewayToFrom,\n" +
                 "srb.Cost AS Cost, srb.Length AS Length, srb.Geometry AS Geometry, srb.Name AS Name,\n" +
                 "Min(Distance(rn.geometry, srb.geometry)) FROM scenic_routes_buffer srb, roads_nodes rn\n" +
-                "WHERE rn.node_id = 1\n" +
+                "WHERE rn.node_id = %d\n" +
                 "),\n" +
                 "available_nodes AS\n" +
                 "(\n" +

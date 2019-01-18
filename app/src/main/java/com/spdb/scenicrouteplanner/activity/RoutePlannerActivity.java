@@ -226,6 +226,9 @@ public class RoutePlannerActivity extends Fragment {
                 // w odległości nie większej niż zdefiniowana.
                 dbProvider.getScenicRoutesBuffer(buffer);
 
+                // Posprzątanie z tabeli wynikowej dotychczasowego wyniku.
+                dbProvider.cleanScenicRoutesPath();
+
                 long currentStartBufferSize = dbProvider.getScenicRoutesBufferSize();
                 Log.d("ROUTE_PLANNER", String.format(Locale.US, "BUFFER SIZE - %d", currentStartBufferSize));
                 // Czy przestaliśmy pobierać nowe odcinki widokowe?
