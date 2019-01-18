@@ -89,20 +89,14 @@ public class MapService implements IMapService
                 while (resultCursor.moveToNext())
                 {
                     ScenicRoutesPathRow edgeResult = dbProvider.getScenicRoutesPathRow(resultCursor);
-                    long startNodeId = edgeResult.getNodeFrom();
-                    long endNodeId = edgeResult.getNodeTo();
 
-                    GeoCoords startNodeGeoCoords = dbProvider.getNodeGeoCoords(startNodeId);
-                    GeoCoords endNodeGeoCoords = dbProvider.getNodeGeoCoords(endNodeId);
-                    if (startNodeGeoCoords != null && endNodeGeoCoords != null)
-                    {
-                        final List<GeoCoords> routeGeoCoords = dbProvider.getRouteGeoCoords(startNodeId, endNodeId);
+                    if (edgeResult != null) {
+                        final List<GeoCoords> routeGeoCoords = getRouteGeoCoords(edgeResult.getGeometry());
 
                         Polyline polyline = new Polyline();
 
                         List<GeoPoint> routeGeoPoints = new ArrayList<>();
-                        for (GeoCoords coords: routeGeoCoords)
-                        {
+                        for (GeoCoords coords : routeGeoCoords) {
                             routeGeoPoints.add(new GeoPoint(coords.getLatitude(), coords.getLongitude()));
                         }
                         polyline.setPoints(routeGeoPoints);
@@ -188,5 +182,19 @@ public class MapService implements IMapService
     private static final class EdgeColor {
         final static int STANDARD_ROUTE_COLOR = Color.BLACK;
         final static int SCENIC_ROUTE_COLOR = Color.RED;
+    }
+
+    private static List<GeoCoords> getRouteGeoCoords(String geom)
+    {
+        List<GeoCoords> res = new ArrayList();
+        String coordsText = geom.substring(geom.indexOf('(') + 1, geom.indexOf(')')).replaceAll(",", "");
+        String[] coordsArray = coordsText.split(" ");
+        for (int i = 0; i < coordsArray.length; i += 2)
+        {
+            res.add(new GeoCoords(Double.parseDouble(coordsArray[i + 1]),
+                    Double.parseDouble(coordsArray[i])));
+        }
+
+        return res;
     }
 }
