@@ -34,12 +34,20 @@ public class ScenicRoutesPathStats
         return length;
     }
 
+    public double getLengthInKm() {
+        return length / 1000;
+    }
+
     public void setLength(double length) {
         this.length = length;
     }
 
     public double getScenicRoutesLength() {
         return scenicRoutesLength;
+    }
+
+    public double getScenicRoutesLengthInKm() {
+        return scenicRoutesLength / 1000;
     }
 
     public void setScenicRoutesLength(double scenicRoutesLength) {
@@ -49,6 +57,8 @@ public class ScenicRoutesPathStats
     public double getCost() {
         return cost;
     }
+
+    public double getCostInMin() {return cost / 60;}
 
     public void setCost(double cost) {
         this.cost = cost;

@@ -25,8 +25,6 @@ public class RoutePlannerActivity extends Fragment {
     // ==============================
     // Private fields
     // ==============================
-    private static final double DEFAULT_MULTIPLIER = 1.0;
-    private static final double MULTIPLIER_HOP = 1.0;
 
     private View routePlannerView;
     private EditText startLocationEditText;
@@ -110,7 +108,9 @@ public class RoutePlannerActivity extends Fragment {
                                 {
                                     boolean success = findScenicRoutesPath(dbProvider, startNodeId, endNodeId, scenicRouteMin);
                                     if (success)
+                                    {
                                         MapActivity.setScenicRoutesPathStats(dbProvider.getScenicRoutesPathStats());
+                                    }
                                     getFragmentManager().popBackStack();
                                 }
                                 else
@@ -193,11 +193,11 @@ public class RoutePlannerActivity extends Fragment {
     private boolean findScenicRoutesPath(MazovianRoutesDbProvider dbProvider, long startNodeId, long endNodeId,
                                       double scenicRouteMin)
     {
-        // Stałe algorytmu
+        // Stałe algorytmu.
         final double BUFFER_INC = 0.1f;
         final double BUFFER_EXTRA = 1.1f;
 
-        // Zmienne lokalne algorytmu
+        // Zmienne lokalne algorytmu.
         double buffer = 0.05f;
         long lastStartBufferSize = 0;
         double currentScenicRoutesLength;
@@ -217,7 +217,7 @@ public class RoutePlannerActivity extends Fragment {
             Log.d("ROUTE_PLANNER", "SHORTEST PATH HAVE MET SCENIC ROUTES CONDITION");
             dbProvider.moveShortestPathToScenicRoutesPath();
         }
-        // Nie spełnia, ale nie ma także błędu
+        // Nie spełnia, ale nie ma także błędu.
         else if (currentScenicRoutesLength != -1)
         {
             Log.d("ROUTE_PLANNER", "SHORTEST PATH HAVE NOT MET SCENIC ROUTES CONDITION");
@@ -237,11 +237,11 @@ public class RoutePlannerActivity extends Fragment {
                 }
                 lastStartBufferSize = currentStartBufferSize;
                 scenicRoutesLengthInBuffer = dbProvider.getScenicRoutesBufferScenicRoutesSumLength();
-                // Zwiększenie rozmiaru bufora
+                // Zwiększenie rozmiaru bufora.
                 buffer += BUFFER_INC;
             }
 
-            // Dopóki nie spełnimy warunku minimalnej długości odcinków widokowych
+            // Dopóki nie spełnimy warunku minimalnej długości odcinków widokowych.
             while(currentScenicRoutesLength < scenicRouteMin)
             {
                 // Posprzątanie z tabeli wynikowej dotychczasowego wyniku.
@@ -258,7 +258,7 @@ public class RoutePlannerActivity extends Fragment {
                     Log.d("ROUTE_PLANNER", String.format("CURRENT_NODE - %d", currentNodeId));
 
                     currentScenicRoutesLength = dbProvider.getScenicRoutesPathScenicRoutesSumLength();
-                    // Warunek minimalnej dlugości odcinków widokowych spełniony
+                    // Warunek minimalnej dlugości odcinków widokowych spełniony.
                     if (currentScenicRoutesLength >= scenicRouteMin)
                     {
                         Log.d("ROUTE_PLANNER", String.format("CURRENT PATH HAVE MET SCENIC ROUTES CONDITION"));
@@ -270,7 +270,7 @@ public class RoutePlannerActivity extends Fragment {
                 }
                 dbProvider.commitTransaction();
 
-                // Jeśli błąd
+                // Jeśli błąd.
                 if (currentNodeId == -1 || currentBufferSize == -1 || currentScenicRoutesLength == -1) {
                     Log.d("ROUTE_PLANNER", "ERROR OCCURIED");
                     break;

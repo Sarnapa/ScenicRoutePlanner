@@ -114,9 +114,12 @@ public class MapActivity extends Fragment {
                             TextView distance = main.findViewById(R.id.distanceValue);
                             TextView scenicDistance = main.findViewById(R.id.scenicDistanceValue);
                             TextView time = main.findViewById(R.id.timeValue);
-                            distance.setText(String.format(Locale.US, "%f", scenicRoutesPathStats.getLength()));
-                            scenicDistance.setText(String.format(Locale.US, "%f", scenicRoutesPathStats.getScenicRoutesLength()));
-                            time.setText(String.format(Locale.US, "%f", scenicRoutesPathStats.getCost()));
+                            distance.setText(String.format(Locale.US, "%.2f KM",
+                                    scenicRoutesPathStats.getLengthInKm()));
+                            scenicDistance.setText(String.format(Locale.US, "%.2f KM",
+                                    scenicRoutesPathStats.getScenicRoutesLengthInKm()));
+                            time.setText(String.format(Locale.US, "%.2f min",
+                                    scenicRoutesPathStats.getCostInMin()));
                         }
                     }
                 } catch (Exception e) {
