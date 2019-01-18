@@ -25,7 +25,6 @@ public class RoutePlannerActivity extends Fragment {
     // ==============================
     // Private fields
     // ==============================
-
     private View routePlannerView;
     private EditText startLocationEditText;
     private EditText destinationEditText;

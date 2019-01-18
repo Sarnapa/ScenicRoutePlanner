@@ -5,11 +5,6 @@ final class MazovianRoutesDbContract
     private MazovianRoutesDbContract()
     { }
 
-    interface GeometryColumn
-    {
-        static final String GEOMETRY_COL_NAME = "geometry";
-    }
-
     // ==============================
     // Tabele - Mazowieckie
     // ==============================

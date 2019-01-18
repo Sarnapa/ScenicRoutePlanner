@@ -1,7 +1,6 @@
 package com.spdb.scenicrouteplanner.activity;
 
 import android.content.pm.PackageManager;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -14,11 +13,7 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import com.spdb.scenicrouteplanner.R;
-import com.spdb.scenicrouteplanner.lib.GeoCoords;
 import com.spdb.scenicrouteplanner.lib.PermissionsClassLib;
-import com.spdb.scenicrouteplanner.model.Model;
-import com.spdb.scenicrouteplanner.service.OSMService;
-import com.spdb.scenicrouteplanner.utils.OSMParser;
 
 import java.util.Collections;
 import java.util.Dictionary;
@@ -123,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         if (grantResult == PackageManager.PERMISSION_GRANTED) {
             notGrantedPermissionsDict.remove(permCode);
         } else {
-            // Ładne wyjście z apki
+            // TODO: QUIT APP
         }
     }
 }

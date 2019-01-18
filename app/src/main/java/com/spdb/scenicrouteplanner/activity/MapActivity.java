@@ -17,7 +17,6 @@ import android.widget.TextView;
 
 import com.spdb.scenicrouteplanner.R;
 import com.spdb.scenicrouteplanner.database.MazovianRoutesDbProvider;
-import com.spdb.scenicrouteplanner.database.modelDatabase.RoutesDbProvider;
 import com.spdb.scenicrouteplanner.database.structures.ScenicRoutesPathStats;
 import com.spdb.scenicrouteplanner.service.MapService;
 import com.spdb.scenicrouteplanner.service.interfaces.IMapService;
@@ -91,7 +90,6 @@ public class MapActivity extends Fragment {
         mapView.setMinZoomLevel(3.0);
         mapView.setMaxZoomLevel(18.0);
 
-        // Żeby się szybciej kafelki ładowały - do sprawdzenia
         mapView.getTileProvider().getTileCache().getProtectedTileComputers().clear();
         mapView.getTileProvider().getTileCache().setAutoEnsureCapacity(false);
 
