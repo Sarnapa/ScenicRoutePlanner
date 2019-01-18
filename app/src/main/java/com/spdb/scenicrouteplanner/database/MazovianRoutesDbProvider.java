@@ -299,8 +299,9 @@ public class MazovianRoutesDbProvider {
                 "\tWHEN r.class LIKE 'unclassified' THEN 1\n" +
                 "\tELSE 0\n" +
                 "\tEND ScenicRoute\n" +
-                "FROM path_result pr, roads r\n" +
-                "WHERE r.id = pr.ArcRowid;\n",
+                "FROM path_result pr LEFT JOIN roads r\n" +
+                "ON pr.ArcRowid = r.id\n" +
+                "WHERE pr.ArcRowid IS NOT NULL;",
                 nodeId, endNodeId);
         db.execSQL(SQL_INSERT_PATH_TO_DESTINATION);
     }
