@@ -111,6 +111,10 @@ public class RoutePlannerActivity extends Fragment {
                                     {
                                         MapActivity.setScenicRoutesPathStats(dbProvider.getScenicRoutesPathStats());
                                     }
+                                    else
+                                    {
+                                        showAlertDialog(getContext(), R.string.information, R.string.not_found_path);
+                                    }
                                     getFragmentManager().popBackStack();
                                 }
                                 else

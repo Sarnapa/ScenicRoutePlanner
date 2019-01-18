@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
                         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
                             final ImageButton findRouteButton = findViewById(R.id.find_route_button);
                             findRouteButton.setVisibility(View.VISIBLE);
-                            findViewById(R.id.result).setVisibility(View.VISIBLE);
                         }
                     }
                 });

@@ -14,4 +14,6 @@
     <string name="not_found_destination">Not found destination.</string>
     <string name="find_route_process_error">Finding route failed.</string>
     <string name="put_route_on_map_error">Putting route on map failed.</string>
+    <string name="information">Information</string>
+    <string name="not_found_path">Not found path.</string>
 </resources>

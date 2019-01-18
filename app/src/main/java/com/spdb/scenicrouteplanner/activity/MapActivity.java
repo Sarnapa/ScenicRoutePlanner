@@ -120,6 +120,7 @@ public class MapActivity extends Fragment {
                                     scenicRoutesPathStats.getScenicRoutesLengthInKm()));
                             time.setText(String.format(Locale.US, "%.2f min",
                                     scenicRoutesPathStats.getCostInMin()));
+                            main.findViewById(R.id.result).setVisibility(View.VISIBLE);
                         }
                     }
                 } catch (Exception e) {
